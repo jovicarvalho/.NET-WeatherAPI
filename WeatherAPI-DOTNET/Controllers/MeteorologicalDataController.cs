@@ -19,12 +19,31 @@ public class MeteorologicalDataController: ControllerBase
     {
         _context.MeteologicalData.Add(metData);
         _context.SaveChanges();
-        return Ok();
+        return Ok(metData);
     }
 
     [HttpGet]
     public IEnumerable<MeteorologicalDataEntity> GetAll([FromQuery] int skip = 0)
     {
         return _context.MeteologicalData.Skip(0).Take(10);
+    }
+
+    [HttpGet("{id}")]
+    public IActionResult FindMeteorologicalDataByID(int id)
+    {
+        var metData = _context.MeteologicalData.FirstOrDefault(metData => metData.Id == id);
+        if (metData == null) { return NotFound();}
+        return Ok(metData);
+    }
+
+    [HttpGet("city={cityName}")]
+    public IActionResult FindMeteorologicalDataByCity (string cityName)
+    {
+        List<MeteorologicalDataEntity> metDataList = _context.MeteologicalData.Where(metDataList => metDataList.City == cityName).ToList();
+        if(metDataList.Count == 0)
+        {
+            return NotFound();
+        }
+        return Ok(metDataList);
     }
 }
