@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WeatherAPI_DOTNET.Context;
 using WeatherAPI_DOTNET.Models;
+using Microsoft.AspNetCore.JsonPatch;
+using AutoMapper;
+using WeatherAPI_DOTNET.Data.Dtos;
 
 namespace WeatherAPI_DOTNET.Controllers;
 
@@ -9,17 +12,21 @@ namespace WeatherAPI_DOTNET.Controllers;
 public class MeteorologicalDataController: ControllerBase
 {
     private MeteorologicalDataContext _context;
-    public MeteorologicalDataController(MeteorologicalDataContext context)
+    private IMapper _mapper;
+    public MeteorologicalDataController(MeteorologicalDataContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     [HttpPost]
-    public IActionResult CreateMeteorologicalData([FromBody] MeteorologicalDataEntity metData)
+    public IActionResult CreateMeteorologicalData([FromBody] CreateMetDataDto metDataDto)
     {
-        _context.MeteologicalData.Add(metData);
+        MeteorologicalDataEntity metDataEntity = _mapper.Map<MeteorologicalDataEntity>(metDataDto);
+        _context.MeteologicalData.Add(metDataEntity);
         _context.SaveChanges();
-        return Ok(metData);
+        return CreatedAtAction(nameof(FindMeteorologicalDataByID), new { id = metDataEntity.Id },
+            metDataEntity);
     }
 
     [HttpGet]
@@ -40,10 +47,43 @@ public class MeteorologicalDataController: ControllerBase
     public IActionResult FindMeteorologicalDataByCity (string cityName)
     {
         List<MeteorologicalDataEntity> metDataList = _context.MeteologicalData.Where(metDataList => metDataList.City == cityName).ToList();
-        if(metDataList.Count == 0)
-        {
-            return NotFound();
-        }
+        if (metDataList.Count == 0) return NotFound();
         return Ok(metDataList);
     }
+
+    [HttpPut("{id}")]
+    public IActionResult UpdateMeteorologicalDataById
+        (
+        int id,
+        [FromBody] UpdateMetDataDto metDataDto
+        )
+    {
+        var metData = _context.MeteologicalData.FirstOrDefault(metData => metData.Id == id);
+        if (metData == null) return NotFound();
+        _mapper.Map(metDataDto, metData);
+        _context.SaveChanges();
+        return Ok(metDataDto);
+    }
+  
+
+    [HttpPatch("{id}")]
+    public IActionResult ParcialEditMeteorologicalDataByID
+        (
+        int id, 
+        [FromBody] JsonPatchDocument<UpdateMetDataDto> patch
+        ) 
+    {
+        var metData = _context.MeteologicalData.FirstOrDefault(metData => metData.Id == id);
+        if (metData == null) { return NotFound(); }
+
+        var metDataAtuazalizar = _mapper.Map<UpdateMetDataDto>(metData);
+
+        patch.ApplyTo(metDataAtuazalizar, ModelState);
+        if (!TryValidateModel(metDataAtuazalizar)) return ValidationProblem(ModelState);
+
+        _mapper.Map(metDataAtuazalizar, metData);    
+        _context.SaveChanges();
+        return Ok();
+    }
+
 }
