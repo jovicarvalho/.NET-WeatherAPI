@@ -74,7 +74,7 @@ public class MeteorologicalDataController: ControllerBase
         ) 
     {
         var metData = _context.MeteologicalData.FirstOrDefault(metData => metData.Id == id);
-        if (metData == null) { return NotFound(); }
+        if (metData == null) return NotFound();
 
         var metDataAtuazalizar = _mapper.Map<UpdateMetDataDto>(metData);
 
@@ -84,6 +84,16 @@ public class MeteorologicalDataController: ControllerBase
         _mapper.Map(metDataAtuazalizar, metData);    
         _context.SaveChanges();
         return Ok();
+    }
+
+    [HttpDelete("{id}")]
+    public IActionResult DeleteMeteorologicalDataByID( int id )
+    {
+        var metData = _context.MeteologicalData.FirstOrDefault(metData => metData.Id == id);
+        if (metData == null) return NotFound();
+        _context.Remove(metData);
+        _context.SaveChanges();
+        return Ok("Deleted with Sucess");
     }
 
 }
