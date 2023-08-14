@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using static WeatherAPI_DOTNET.Service.MeteorologicalDataService;
 
 namespace WeatherAPI_DOTNET.Data.Dtos
 {

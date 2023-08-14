@@ -53,7 +53,7 @@ namespace WeatherAPI_DOTNET.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("WeatherDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("date");
 
                     b.Property<int>("WindSpeed")
                         .HasColumnType("integer");
@@ -63,7 +63,7 @@ namespace WeatherAPI_DOTNET.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MeteologicalData");
+                    b.ToTable("MeteorologicalData");
                 });
 #pragma warning restore 612, 618
         }

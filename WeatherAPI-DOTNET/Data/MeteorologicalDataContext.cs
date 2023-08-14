@@ -7,5 +7,11 @@ public class MeteorologicalDataContext: DbContext
 {
     public MeteorologicalDataContext(DbContextOptions<MeteorologicalDataContext> opts): base(opts) { 
     }
-    public DbSet<MeteorologicalDataEntity> MeteologicalData { get; set; }
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<MeteorologicalDataEntity>()
+            .Property(e => e.WeatherDate)
+            .HasColumnType("date");
+    }
+    public DbSet<MeteorologicalDataEntity> MeteorologicalData { get; set; }
 }
