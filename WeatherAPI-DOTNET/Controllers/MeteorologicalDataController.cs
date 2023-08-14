@@ -56,10 +56,20 @@ public class MeteorologicalDataController: ControllerBase
     }
 
     [HttpGet("actualDay/city={cityName}")]
-    public IActionResult FindActualDayInCity(string cityName, [FromBody] DateTime date)
+    public IActionResult FindActualDayInCity(string cityName)
+    {
+        var date = DateTime.Now;
+        List<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName);
+        if (metDataList.Count == 0) return NotFound("This city doesn't have a WeatherData.");
+        MeteorologicalDataEntity actualDay = _service.FindMeteoroloficalDataByActualDay(date, metDataList);
+        if (actualDay == null) return NoContent();
+        return Ok(actualDay);
+    }
+    [HttpGet("specificDate/city={cityName}")]
+    public IActionResult FindSpecificDateInCity(string cityName, [FromBody] DateTime date)
     {
         List<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName);
-        if (metDataList.Count == 0) return NotFound();
+        if (metDataList.Count == 0) return NotFound("This city doesn't have a WeatherDate.");
         Console.WriteLine(date);
         MeteorologicalDataEntity actualDay = _service.FindMeteoroloficalDataByActualDay(date, metDataList);
         return Ok(actualDay);
