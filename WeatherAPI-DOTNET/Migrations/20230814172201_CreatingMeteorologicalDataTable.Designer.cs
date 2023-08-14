@@ -12,8 +12,8 @@ using WeatherAPI_DOTNET.Context;
 namespace WeatherAPI_DOTNET.Migrations
 {
     [DbContext(typeof(MeteorologicalDataContext))]
-    [Migration("20230810014427_CreateMeteorologicalDataTable")]
-    partial class CreateMeteorologicalDataTable
+    [Migration("20230814172201_CreatingMeteorologicalDataTable")]
+    partial class CreatingMeteorologicalDataTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -56,7 +56,7 @@ namespace WeatherAPI_DOTNET.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("WeatherDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("date");
 
                     b.Property<int>("WindSpeed")
                         .HasColumnType("integer");
@@ -66,7 +66,7 @@ namespace WeatherAPI_DOTNET.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MeteologicalData");
+                    b.ToTable("MeteorologicalData");
                 });
 #pragma warning restore 612, 618
         }
