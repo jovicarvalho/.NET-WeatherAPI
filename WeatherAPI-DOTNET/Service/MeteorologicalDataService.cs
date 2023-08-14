@@ -27,7 +27,7 @@ public class MeteorologicalDataService : IMeteorologicalDataService
 
     }
     
-    public MeteorologicalDataEntity FindMeteoroloficalDataSpecific(DateTime date, List<MeteorologicalDataEntity> metDataList)
+    public MeteorologicalDataEntity FindMeteoroloficalDataBySpecificDate(DateTime date, List<MeteorologicalDataEntity> metDataList)
     {
         MeteorologicalDataEntity metData = metDataList.FirstOrDefault(
             metData =>

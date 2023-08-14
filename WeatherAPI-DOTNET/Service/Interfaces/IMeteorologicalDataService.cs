@@ -6,6 +6,6 @@ namespace WeatherAPI_DOTNET.Service.Interfaces
     {
         MeteorologicalDataEntity findMeteorologicalDataByID(int id);
         List<MeteorologicalDataEntity> FindMeteorologicalDataByCityName(string cityName);
-        public MeteorologicalDataEntity FindMeteoroloficalDataSpecific(DateTime dateOnly, List<MeteorologicalDataEntity> metDataList);
+        public MeteorologicalDataEntity FindMeteoroloficalDataBySpecificDate(DateTime dateOnly, List<MeteorologicalDataEntity> metDataList);
     }
 }
