@@ -50,8 +50,8 @@ public class MeteorologicalDataController: ControllerBase
     [HttpGet("city={cityName}")]
     public IActionResult FindMeteorologicalDataByCity (string cityName)
     {
-        List<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName);
-        if (metDataList.Count == 0) return NotFound();
+        IEnumerable<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName).OrderByDescending(metData => metData.WeatherDate).Take(7);
+        if (!metDataList.Any()) return NotFound("There is no Meteorological Data found with this City");
         return Ok(metDataList);
     }
 
@@ -60,7 +60,7 @@ public class MeteorologicalDataController: ControllerBase
     {
         var date = DateTime.Now;
         List<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName);
-        if (metDataList.Count == 0) return NotFound("This city doesn't have a WeatherData.");
+        if (!metDataList.Any()) return NotFound("This city doesn't have a WeatherData.");
         MeteorologicalDataEntity actualDay = _service.FindMeteoroloficalDataBySpecificDate(date, metDataList);
         if (actualDay == null) return NoContent();
         return Ok(actualDay);
@@ -69,7 +69,7 @@ public class MeteorologicalDataController: ControllerBase
     public IActionResult FindSpecificDateInCity(string cityName, [FromBody] DateTime date)
     {
         List<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName);
-        if (metDataList.Count == 0) return NotFound("This city doesn't have a WeatherDate.");
+        if (!metDataList.Any()) return NotFound("This city doesn't have a WeatherDate.");
         Console.WriteLine(date);
         MeteorologicalDataEntity actualDay = _service.FindMeteoroloficalDataBySpecificDate(date, metDataList);
         return Ok(actualDay);
