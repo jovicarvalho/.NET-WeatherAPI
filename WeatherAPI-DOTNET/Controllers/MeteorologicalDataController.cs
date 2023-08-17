@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.JsonPatch;
 using AutoMapper;
 using WeatherAPI_DOTNET.Data.Dtos;
 using WeatherAPI_DOTNET.Service.Interfaces;
-using WeatherAPI_DOTNET.Service;
 
 namespace WeatherAPI_DOTNET.Controllers;
 
@@ -15,8 +14,11 @@ public class MeteorologicalDataController: ControllerBase
 {
     private MeteorologicalDataContext _context;
     private IMapper _mapper;
-    private IMeteorologicalDataService _service; 
-    public MeteorologicalDataController(MeteorologicalDataContext context, IMapper mapper, IMeteorologicalDataService service)
+    private IMeteorologicalDataService _service;
+    public MeteorologicalDataController(
+        MeteorologicalDataContext context,
+        IMapper mapper, 
+        IMeteorologicalDataService service)
     {
         _context = context;
         _mapper = mapper;
@@ -26,9 +28,7 @@ public class MeteorologicalDataController: ControllerBase
     [HttpPost]
     public IActionResult CreateMeteorologicalData([FromBody] CreateMetDataDto metDataDto)
     {
-        MeteorologicalDataEntity metDataEntity = _mapper.Map<MeteorologicalDataEntity>(metDataDto);
-        _context.MeteorologicalData.Add(metDataEntity);
-        _context.SaveChanges();
+        MeteorologicalDataEntity metDataEntity = _service.CreateMeteorologicalData(metDataDto);
         return CreatedAtAction(nameof(FindMeteorologicalDataByID), new { id = metDataEntity.Id },
             metDataEntity);
     }
@@ -36,89 +36,64 @@ public class MeteorologicalDataController: ControllerBase
     [HttpGet]
     public IEnumerable<MeteorologicalDataEntity> GetAll([FromQuery] int skip = 0)
     {
-        return _context.MeteorologicalData.Skip(0).Take(10);
+        return _service.FindAllMeteorologicalData(skip);
     }
+
 
     [HttpGet("{id}")]
     public IActionResult FindMeteorologicalDataByID(int id)
     {
-        var metData = _service.findMeteorologicalDataByID(id);
-        if (metData == null) { return NotFound("Meteorological Data not Found");}
-        return Ok(metData);
+        var metData = _service.FindMeteorologicalDataByID(id);
+        return metData is null ? NotFound("Meteorological Data not Found") : Ok(metData);
     }
 
     [HttpGet("city={cityName}")]
     public IActionResult FindMeteorologicalDataByCity (string cityName)
     {
-        IEnumerable<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName).OrderByDescending(metData => metData.WeatherDate).Take(7);
-        if (!metDataList.Any()) return NotFound("There is no Meteorological Data found with this City");
-        return Ok(metDataList);
+        IEnumerable<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName)
+            .OrderByDescending(metData => metData.WeatherDate)
+            .Take(7);
+       return metDataList.Any() ? Ok(metDataList) : NotFound("There is no Meteorological Data found with this City");
     }
 
     [HttpGet("actualDay/city={cityName}")]
     public IActionResult FindActualDayInCity(string cityName)
     {
-        var date = DateTime.Now;
-        List<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName);
-        if (!metDataList.Any()) return NotFound("This city doesn't have a WeatherData.");
-        MeteorologicalDataEntity actualDay = _service.FindMeteoroloficalDataBySpecificDate(date, metDataList);
-        if (actualDay == null) return NoContent();
-        return Ok(actualDay);
+        MeteorologicalDataEntity actualDay = _service.FindActualDay(cityName);
+        return actualDay is null ? NotFound() : Ok(actualDay);
     }
+
+
     [HttpGet("specificDate/city={cityName}")]
     public IActionResult FindSpecificDateInCity(string cityName, [FromBody] DateTime date)
     {
-        List<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName);
-        if (!metDataList.Any()) return NotFound("This city doesn't have a WeatherDate.");
-        Console.WriteLine(date);
-        MeteorologicalDataEntity actualDay = _service.FindMeteoroloficalDataBySpecificDate(date, metDataList);
-        return Ok(actualDay);
+        MeteorologicalDataEntity especificDate = _service.FindMeteoroloficalDataBySpecificDate(date, cityName);
+        return especificDate is null ? NotFound() : Ok(especificDate);
     }
 
     [HttpPut("{id}")]
-    public IActionResult UpdateMeteorologicalDataById
-        (
+    public IActionResult UpdateMeteorologicalDataById(
         int id,
-        [FromBody] UpdateMetDataDto metDataDto
-        )
+        [FromBody] UpdateMetDataDto metDataDto)
     {
-        var metData = _service.findMeteorologicalDataByID(id);
-        if (metData == null) return NotFound();
-        _mapper.Map(metDataDto, metData);
-        _context.SaveChanges();
-        return Ok(metDataDto);
+        MeteorologicalDataEntity metDataEdited = _service.EditMeteorologicalData(id, metDataDto);
+        return metDataEdited is null ? NotFound("Id not found") : Ok(metDataEdited);
     }
   
 
     [HttpPatch("{id}")]
-    public IActionResult ParcialEditMeteorologicalDataByID
-        (
-        int id, 
-        [FromBody] JsonPatchDocument<UpdateMetDataDto> patch
-        ) 
+    public IActionResult ParcialEditMeteorologicalDataByID(
+        int id,
+        [FromBody] JsonPatchDocument<UpdateMetDataDto> patch) 
     {
-             var metData = _service.findMeteorologicalDataByID(id);
-
-        if (metData == null) return NotFound();
-
-        var metDataAtuazalizar = _mapper.Map<UpdateMetDataDto>(metData);
-
-        patch.ApplyTo(metDataAtuazalizar, ModelState);
-        if (!TryValidateModel(metDataAtuazalizar)) return ValidationProblem(ModelState);
-
-        _mapper.Map(metDataAtuazalizar, metData);    
-        _context.SaveChanges();
+        _service.EditOnlyOneField(id, patch);
         return Ok();
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteMeteorologicalDataByID( int id )
+    public IActionResult DeleteMeteorologicalDataByID(int id )
     {
-        var metData = _context.MeteorologicalData.FirstOrDefault(metData => metData.Id == id);
-        if (metData == null) return NotFound();
-        _context.Remove(metData);
-        _context.SaveChanges();
-        return Ok("Deleted with Sucess");
+        return _service.DeleteMeteorologicalData(id) is null ? NotFound("Id not found.") : Ok("Deleted with Sucess!");
     }
 
 }
