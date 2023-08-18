@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WeatherAPI_DOTNET.Context;
+using WeatherAPI_DOTNET.Data.Repository;
+using WeatherAPI_DOTNET.Data.Repository.Interfaces;
 using WeatherAPI_DOTNET.Service;
 using WeatherAPI_DOTNET.Service.Interfaces;
 
@@ -7,13 +9,13 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("Default"); 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-// Add services to the container.
 builder.Services.AddDbContext<MeteorologicalDataContext>(options =>
 {
 
     options.UseNpgsql(connectionString);
 });
 
+builder.Services.AddScoped<IMeteorologicalDataRepository,MeteorologicalDataRepository>();
 
 builder.Services.AddScoped<IMeteorologicalDataService,MeteorologicalDataService>();
 
