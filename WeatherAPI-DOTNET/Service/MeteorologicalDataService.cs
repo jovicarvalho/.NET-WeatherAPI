@@ -27,41 +27,38 @@ public class MeteorologicalDataService : IMeteorologicalDataService
         _mapper = mapper; 
     }
 
-    //public IEnumerable<MeteorologicalDataEntity> FindAllMeteorologicalData(int skip)
-    //{
-    //    return _context.MeteorologicalData.Skip(skip).Take(10);
-    //}
-
-    public  MeteorologicalDataEntity FindMeteorologicalDataByID(int id)
+    public IEnumerable<MeteorologicalDataEntity> FindAllMeteorologicalData(int skip)
     {
-        return _repository.FindByID(id);
+        return _repository.GetAll().Skip(skip);
     }
 
-    
-    //public MeteorologicalDataEntity FindMeteoroloficalDataBySpecificDate(DateTime date, string cityName)
-    //{
-    //    List<MeteorologicalDataEntity> metDataList = FindMeteorologicalDataByCityName(cityName);
-    //    MeteorologicalDataEntity? metData = metDataList.FirstOrDefault(
-    //        metData =>
-    //        (metData.WeatherDate.Day == date.Day) &&
-    //        (metData.WeatherDate.Month == date.Month) &&
-    //        (metData.WeatherDate.Year == date.Year)
-    //        );
-    //    return metData;
-    //}
+    public  MeteorologicalDataEntity FindMeteorologicalDataByID(int id)
+    {   
+        var metData = _repository.FindByID(id);
+        return metData;
+    }
 
-    //public MeteorologicalDataEntity FindActualDay(string cityName)
-    //{
-    //    DateTime actualDay = DateTime.Now;
-    //    MeteorologicalDataEntity metDataWithActualDay = FindMeteoroloficalDataBySpecificDate(actualDay, cityName);
-    //    return metDataWithActualDay;
-    //}
 
-    //public List<MeteorologicalDataEntity> FindMeteorologicalDataByCityName(string cityName)
-    //{
-    //    List<MeteorologicalDataEntity> metDataList = _context.MeteorologicalData.Where(metDataList => metDataList.City == cityName).ToList();
-    //    return metDataList;
-    //}
+    public MeteorologicalDataEntity FindMeteoroloficalDataBySpecificDate(string cityName, DateTime date)
+    {
+        MeteorologicalDataEntity metData = _repository.FindBySpecificDateAndCity(cityName, date);
+        return metData;
+    }
+
+    public MeteorologicalDataEntity FindActualDay(string cityname)
+    {
+        var actualDay = DateTime.Now.Date;
+        MeteorologicalDataEntity metDataWithActualDay = FindMeteoroloficalDataBySpecificDate(cityname, actualDay);
+        return metDataWithActualDay;
+    }
+
+    public IEnumerable<MeteorologicalDataEntity> FindMeteorologicalDataByCityName(string cityName)
+    {
+        IEnumerable<MeteorologicalDataEntity> metDataList = _repository.FindByCity(cityName)
+            .OrderByDescending(metData => metData.WeatherDate)
+            .Take(7);
+        return metDataList;
+    }
 
     public MeteorologicalDataEntity CreateMeteorologicalData(CreateMetDataDto metDataDto)
     {
@@ -70,7 +67,7 @@ public class MeteorologicalDataService : IMeteorologicalDataService
         return metData;
     }
 
-    //public MeteorologicalDataEntity EditMeteorologicalData(int id,UpdateMetDataDto metDataDto)
+    //public MeteorologicalDataEntity EditMeteorologicalData(int id, UpdateMetDataDto metDataDto)
     //{
     //    var metData = FindMeteorologicalDataByID(id);
     //    _mapper.Map(metDataDto, metData);
@@ -88,11 +85,10 @@ public class MeteorologicalDataService : IMeteorologicalDataService
     //    return metData;
     //}
 
-    //public MeteorologicalDataEntity DeleteMeteorologicalData(int id)
-    //{
-    //    var metData = FindMeteorologicalDataByID(id);
-    //    _context.Remove(metData);
-    //    _context.SaveChanges(); 
-    //    return metData;
-    //}
+    public MeteorologicalDataEntity DeleteMeteorologicalData(int id)
+    {
+        var metData = _repository.DeleteById(id);
+        return metData;
+    }
+ 
 }
