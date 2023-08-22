@@ -16,8 +16,7 @@ builder.Services.AddDbContext<MeteorologicalDataContext>(options =>
 });
 
 builder.Services.AddScoped<IMeteorologicalDataRepository,MeteorologicalDataRepository>();
-
-builder.Services.AddScoped<IMeteorologicalDataService,MeteorologicalDataService>();
+builder.Services.AddScoped<IMeteorologicalDataService, MeteorologicalDataService>();
 
 builder.Services.AddControllers().AddNewtonsoftJson();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetco re/swashbuckle
