@@ -114,6 +114,17 @@ public class MeteorologicalDataServiceTests
         Assert.Equal(metDataWithID, result);
     }
 
+    [Fact(DisplayName = "Get by Id - Verify if calls FindByID method in Repository, correctly")]
+    public void GetByIDVerifysCommunicationWithRepository()
+    {
+        //Arrange
+        int id = 0;
+        //Act
+        var result = _service.FindMeteorologicalDataByID(id);
+        //Assert
+        _repository.Verify(r => r.FindByID(id), Times.Once);
+    }
+
     [Fact(DisplayName ="Get by Id With Invalid Id - Failed")]
     public void GetByIDFailed_InvalidID()
     {
