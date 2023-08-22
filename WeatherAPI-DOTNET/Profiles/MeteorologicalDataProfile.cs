@@ -10,7 +10,6 @@ public class MeteorologicalDataProfile : Profile
     public MeteorologicalDataProfile()
     {
         CreateMap<CreateMetDataDto,MeteorologicalDataEntity>();
-       
         CreateMap<UpdateMetDataDto, MeteorologicalDataEntity>();
         CreateMap<MeteorologicalDataEntity, UpdateMetDataDto>();
         CreateMap<MeteorologicalDataEntity,ReadMetDataDto>();

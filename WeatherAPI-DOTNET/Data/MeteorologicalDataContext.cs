@@ -14,6 +14,5 @@ public class MeteorologicalDataContext: DbContext
                 .HasColumnType("date");
         }
 
-
     public DbSet<MeteorologicalDataEntity> MeteorologicalData { get; set; }
 }
