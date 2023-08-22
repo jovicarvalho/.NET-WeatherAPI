@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using AutoMapper;
 using WeatherAPI_DOTNET.Data.Dtos;
 using WeatherAPI_DOTNET.Service.Interfaces;
+using WeatherAPI_DOTNET.Service;
 
 namespace WeatherAPI_DOTNET.Controllers;
 
@@ -18,7 +19,8 @@ public class MeteorologicalDataController: ControllerBase
     public MeteorologicalDataController(
         MeteorologicalDataContext context,
         IMapper mapper, 
-        IMeteorologicalDataService service)
+        IMeteorologicalDataService service
+        )
     {
         _context = context;
         _mapper = mapper;
@@ -33,11 +35,11 @@ public class MeteorologicalDataController: ControllerBase
             metDataEntity);
     }
 
-    //[HttpGet]
-    //public IEnumerable<MeteorologicalDataEntity> GetAll([FromQuery] int skip = 0)
-    //{
-    //    return _service.FindAllMeteorologicalData(skip);
-    //}
+    [HttpGet]
+    public IEnumerable<MeteorologicalDataEntity> GetAll([FromQuery] int skip = 0)
+    {
+        return _service.FindAllMeteorologicalData(skip);
+    }
 
 
     [HttpGet("{id}")]
@@ -47,29 +49,27 @@ public class MeteorologicalDataController: ControllerBase
         return metData is null ? NotFound("Meteorological Data not Found") : Ok(metData);
     }
 
-    //[HttpGet("city={cityName}")]
-    //public IActionResult FindMeteorologicalDataByCity (string cityName)
-    //{
-    //    IEnumerable<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName)
-    //        .OrderByDescending(metData => metData.WeatherDate)
-    //        .Take(7);
-    //   return metDataList.Any() ? Ok(metDataList) : NotFound("There is no Meteorological Data found with this City");
-    //}
+    [HttpGet("city={cityName}")]
+    public IActionResult FindMeteorologicalDataByCity (string cityName)
+    {
+       IEnumerable<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName);
+       return metDataList.Any() ? Ok(metDataList) : NotFound("There is no Meteorological Data found with this City");
+    }
 
-    //[HttpGet("actualDay/city={cityName}")]
-    //public IActionResult FindActualDayInCity(string cityName)
-    //{
-    //    MeteorologicalDataEntity actualDay = _service.FindActualDay(cityName);
-    //    return actualDay is null ? NotFound() : Ok(actualDay);
-    //}
+    [HttpGet("actualDay/city={cityName}")]
+    public IActionResult FindActualDayInCity(string cityName)
+    {
+        MeteorologicalDataEntity actualDay = _service.FindActualDay(cityName);
+        return actualDay is null ? NotFound() : Ok(actualDay);
+    }
 
 
-    //[HttpGet("specificDate/city={cityName}")]
-    //public IActionResult FindSpecificDateInCity(string cityName, [FromBody] DateTime date)
-    //{
-    //    MeteorologicalDataEntity especificDate = _service.FindMeteoroloficalDataBySpecificDate(date, cityName);
-    //    return especificDate is null ? NotFound() : Ok(especificDate);
-    //}
+    [HttpGet("specificDate/city={cityName}")]
+    public IActionResult FindSpecificDateInCity(string cityName, [FromBody] DateTime date)
+    {
+        MeteorologicalDataEntity especificDate = _service.FindMeteoroloficalDataBySpecificDate(cityName, date);
+        return especificDate is null ? NotFound() : Ok(especificDate);
+    }
 
     //[HttpPut("{id}")]
     //public IActionResult UpdateMeteorologicalDataById(
@@ -79,7 +79,7 @@ public class MeteorologicalDataController: ControllerBase
     //    MeteorologicalDataEntity metDataEdited = _service.EditMeteorologicalData(id, metDataDto);
     //    return metDataEdited is null ? NotFound("Id not found") : Ok(metDataEdited);
     //}
-  
+
 
     //[HttpPatch("{id}")]
     //public IActionResult ParcialEditMeteorologicalDataByID(
