@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using WeatherAPI_DOTNET.Context;
 using WeatherAPI_DOTNET.Data.Repository.Interfaces;
 using WeatherAPI_DOTNET.Models;
+using WeatherAPI_DOTNET.Service.Interfaces;
 
 namespace WeatherAPI_DOTNET.Data.Repository
 {
@@ -20,9 +22,38 @@ namespace WeatherAPI_DOTNET.Data.Repository
                 _context.SaveChanges();
         }
 
+        public IEnumerable<MeteorologicalDataEntity> GetAll()
+        {
+            return _context.MeteorologicalData.Take(30);
+        }
+
         public MeteorologicalDataEntity FindByID(int id)
         {
             MeteorologicalDataEntity? metData = _context.MeteorologicalData.FirstOrDefault(metData => metData.Id == id);
+            return metData;
+        }
+
+        public IEnumerable<MeteorologicalDataEntity> FindByCity(string cityName)
+        {
+            IEnumerable<MeteorologicalDataEntity> metData = _context.MeteorologicalData.Where(metDataList => metDataList.City == cityName).ToList();
+            return metData;
+        }
+        public MeteorologicalDataEntity FindBySpecificDateAndCity(string cityName, DateTime date) {
+            List<MeteorologicalDataEntity> metDataList = FindByCity(cityName).ToList();
+            MeteorologicalDataEntity? metData = metDataList.FirstOrDefault(
+               metData =>
+               (metData.WeatherDate.Day == date.Day) &&
+               (metData.WeatherDate.Month == date.Month) &&
+               (metData.WeatherDate.Year == date.Year)
+               );
+            return metData;
+        }
+
+        public MeteorologicalDataEntity DeleteById(int id)
+        {
+            MeteorologicalDataEntity metData = FindByID(id);
+            _context.Remove(metData);
+            _context.SaveChanges();
             return metData;
         }
 
