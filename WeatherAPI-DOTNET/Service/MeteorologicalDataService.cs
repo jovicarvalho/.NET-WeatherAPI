@@ -24,12 +24,12 @@ public class MeteorologicalDataService : IMeteorologicalDataService
     public MeteorologicalDataService(IMeteorologicalDataRepository repository, IMapper mapper)
     {
         _repository = repository;
-        _mapper = mapper; 
+        _mapper = mapper;
     }
 
     public IEnumerable<MeteorologicalDataEntity> FindAllMeteorologicalData(int skip)
     {
-        return _repository.GetAll().Skip(skip);
+        return _repository.GetAll(skip*10);
     }
 
     public  MeteorologicalDataEntity FindMeteorologicalDataByID(int id)
@@ -54,9 +54,7 @@ public class MeteorologicalDataService : IMeteorologicalDataService
 
     public IEnumerable<MeteorologicalDataEntity> FindMeteorologicalDataByCityName(string cityName)
     {
-        IEnumerable<MeteorologicalDataEntity> metDataList = _repository.FindByCity(cityName)
-            .OrderByDescending(metData => metData.WeatherDate)
-            .Take(7);
+        IEnumerable<MeteorologicalDataEntity> metDataList = _repository.FindByCity(cityName).ToList();
         return metDataList;
     }
 
@@ -67,23 +65,24 @@ public class MeteorologicalDataService : IMeteorologicalDataService
         return metData;
     }
 
-    //public MeteorologicalDataEntity EditMeteorologicalData(int id, UpdateMetDataDto metDataDto)
-    //{
-    //    var metData = FindMeteorologicalDataByID(id);
-    //    _mapper.Map(metDataDto, metData);
-    //    _context.SaveChanges();
-    //    return metData;
-    //}
+    public MeteorologicalDataEntity EditMeteorologicalData(int id, UpdateMetDataDto metDataDto)
+    {
+        var metData = FindMeteorologicalDataByID(id);
+        _mapper.Map(metDataDto, metData);
+        _repository.EditMeteorologicalData();
+        return metData; 
+    }
 
-    //public MeteorologicalDataEntity EditOnlyOneField(int id, JsonPatchDocument<UpdateMetDataDto> patch)
-    //{
-    //    var metData = FindMeteorologicalDataByID(id);
-    //    var metDataAtualizar = _mapper.Map<UpdateMetDataDto>(metData);
-    //    patch.ApplyTo(metDataAtualizar);
-    //    _mapper.Map(metDataAtualizar, metData);
-    //    _context.SaveChanges();
-    //    return metData;
-    //}
+
+    public MeteorologicalDataEntity EditOnlyOneField(int id, JsonPatchDocument<UpdateMetDataDto> patch)
+    {
+        var metDatainRepository = FindMeteorologicalDataByID(id);
+        var uptadeDto = _mapper.Map<UpdateMetDataDto>(metDatainRepository);
+        patch.ApplyTo(uptadeDto);
+        var metDataAlreadyEdited = _mapper.Map(uptadeDto, metDatainRepository);
+        _repository.EditMeteorologicalData();
+        return metDataAlreadyEdited;
+    }
 
     public MeteorologicalDataEntity DeleteMeteorologicalData(int id)
     {
