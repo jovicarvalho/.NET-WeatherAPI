@@ -36,9 +36,9 @@ public class MeteorologicalDataController: ControllerBase
     }
 
     [HttpGet]
-    public IEnumerable<MeteorologicalDataEntity> GetAll([FromQuery] int skip = 0)
+    public IEnumerable<MeteorologicalDataEntity> GetAll([FromQuery] int skip)
     {
-        return _service.FindAllMeteorologicalData(skip);
+        return _service.FindAllMeteorologicalData((skip));
     }
 
 
@@ -71,29 +71,30 @@ public class MeteorologicalDataController: ControllerBase
         return especificDate is null ? NotFound() : Ok(especificDate);
     }
 
-    //[HttpPut("{id}")]
-    //public IActionResult UpdateMeteorologicalDataById(
-    //    int id,
-    //    [FromBody] UpdateMetDataDto metDataDto)
-    //{
-    //    MeteorologicalDataEntity metDataEdited = _service.EditMeteorologicalData(id, metDataDto);
-    //    return metDataEdited is null ? NotFound("Id not found") : Ok(metDataEdited);
-    //}
+    [HttpPut("{id}")]
+    public IActionResult UpdateMeteorologicalDataById(
+        int id,
+        [FromBody] UpdateMetDataDto metDataDto)
+    {
+        MeteorologicalDataEntity metDataEdited = _service.EditMeteorologicalData(id, metDataDto);
+        return metDataEdited is null ? NotFound("Id not found") : Ok(metDataEdited);
+    }
 
 
-    //[HttpPatch("{id}")]
-    //public IActionResult ParcialEditMeteorologicalDataByID(
-    //    int id,
-    //    [FromBody] JsonPatchDocument<UpdateMetDataDto> patch) 
-    //{
-    //    _service.EditOnlyOneField(id, patch);
-    //    return Ok();
-    //}
+    [HttpPatch("{id}")]
+    public IActionResult ParcialEditMeteorologicalDataByID(
+        int id,
+        [FromBody] JsonPatchDocument<UpdateMetDataDto> patch) 
+    {
+        var metDataEdited = _service.EditOnlyOneField(id, patch);
+        Console.WriteLine(patch);
+        return Ok(metDataEdited);
+    }
 
-    //[HttpDelete("{id}")]
-    //public IActionResult DeleteMeteorologicalDataByID(int id )
-    //{
-    //    return _service.DeleteMeteorologicalData(id) is null ? NotFound("Id not found.") : Ok("Deleted with Sucess!");
-    //}
+    [HttpDelete("{id}")]
+    public IActionResult DeleteMeteorologicalDataByID(int id )
+    {
+        return _service.DeleteMeteorologicalData(id) is null ? NotFound("Id not found.") : Ok("Deleted with Sucess!");
+    }
 
 }
