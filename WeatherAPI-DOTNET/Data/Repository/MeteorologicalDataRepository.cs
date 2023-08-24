@@ -22,9 +22,9 @@ namespace WeatherAPI_DOTNET.Data.Repository
                 _context.SaveChanges();
         }
 
-        public IEnumerable<MeteorologicalDataEntity> GetAll()
+        public IEnumerable<MeteorologicalDataEntity> GetAll(int skip)
         {
-            return _context.MeteorologicalData.Take(30);
+            return _context.MeteorologicalData.Skip(skip).Take(10);
         }
 
         public MeteorologicalDataEntity FindByID(int id)
@@ -35,11 +35,18 @@ namespace WeatherAPI_DOTNET.Data.Repository
 
         public IEnumerable<MeteorologicalDataEntity> FindByCity(string cityName)
         {
-            IEnumerable<MeteorologicalDataEntity> metData = _context.MeteorologicalData.Where(metDataList => metDataList.City == cityName).ToList();
+            IEnumerable<MeteorologicalDataEntity> metData = _context.MeteorologicalData
+                .Where(metDataList => metDataList.City == cityName)
+                .ToList()
+                .OrderByDescending(metData => metData.WeatherDate)
+                .Take(7);
+            ;
             return metData;
         }
         public MeteorologicalDataEntity FindBySpecificDateAndCity(string cityName, DateTime date) {
-            List<MeteorologicalDataEntity> metDataList = FindByCity(cityName).ToList();
+            List<MeteorologicalDataEntity> metDataList = _context.MeteorologicalData
+                .Where(metDataList => metDataList.City == cityName)
+                .ToList();
             MeteorologicalDataEntity? metData = metDataList.FirstOrDefault(
                metData =>
                (metData.WeatherDate.Day == date.Day) &&
@@ -56,6 +63,11 @@ namespace WeatherAPI_DOTNET.Data.Repository
             _context.SaveChanges();
             return metData;
         }
+        public void EditMeteorologicalData()
+        {
+            _context.SaveChanges();
+        }
+
 
     }
 }
