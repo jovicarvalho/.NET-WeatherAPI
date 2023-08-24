@@ -1,7 +1,10 @@
 ﻿using AutoFixture;
 using AutoMapper;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Moq;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,19 +53,7 @@ public class MeteorologicalDataServiceTests
     public void PostSucess_SendingValidEntity()
     {
         //  Arrange         
-        _mapper.Setup(m => m.Map<CreateMetDataDto, MeteorologicalDataEntity>(It.IsAny<CreateMetDataDto>()))
-              .Returns((CreateMetDataDto source) => new MeteorologicalDataEntity
-              {
-                  City = source.City,
-                  WeatherDate = source.WeatherDate,
-                  MorningWeather = source.MorningWeather,
-                  NightWeather = source.NightWeather,
-                  MaxTemperature = source.MaxTemperature,
-                  MinTemperature = source.MinTemperature,
-                  humidity = source.humidity,
-                  WindSpeed = source.WindSpeed,
-                  Precipitation = source.Precipitation
-              });
+      
         _mapper.Setup(m => m.Map<MeteorologicalDataEntity>(createCorrectDTO)).Returns((CreateMetDataDto source) => new MeteorologicalDataEntity
         {
             City = source.City,
@@ -219,7 +210,7 @@ public class MeteorologicalDataServiceTests
     {
         //Arrange
         IEnumerable<MeteorologicalDataEntity> metDataList = new Fixture().Create<IEnumerable<MeteorologicalDataEntity>>();
-        _repository.Setup(r=>r.GetAll()).Returns(metDataList);
+        _repository.Setup(r=>r.GetAll(It.IsAny<int>())).Returns(metDataList);
         var skip = 0;
         //Act
         var response = _service.FindAllMeteorologicalData(skip);
@@ -238,6 +229,152 @@ public class MeteorologicalDataServiceTests
         //Assert
         Assert.Equal(metData,response); 
         _repository.Verify(r=>r.DeleteById(metData.Id), Times.Once);
+    }
+
+    [Fact(DisplayName ="Update by Id with Valid DTO - Sucess")] 
+    public void Put_EditWithValidIdAndValidUpdateDto() {
+        //Arrange
+        var metDataToEdit = new Fixture().Create<MeteorologicalDataEntity>();
+        var editionToInsert = new Fixture().Create<UpdateMetDataDto>();
+
+        _mapper.Setup(m => m.Map<MeteorologicalDataEntity>(editionToInsert))
+     .Returns((UpdateMetDataDto source) => new MeteorologicalDataEntity
+     {
+         Id = metDataToEdit.Id,
+         City = source.City,
+         WeatherDate = source.WeatherDate,
+         MorningWeather = source.MorningWeather,
+         NightWeather = source.NightWeather,
+         MaxTemperature = source.MaxTemperature,
+         MinTemperature = source.MinTemperature,
+         humidity = source.humidity,
+         WindSpeed = source.WindSpeed,
+         Precipitation = source.Precipitation
+     });
+        _repository.Setup(r => r.FindByID(It.IsAny<int>())).Returns(metDataToEdit);
+        //Act
+        var response = _service.EditMeteorologicalData(0, editionToInsert);
+
+        //Assert
+        Assert.Equal(metDataToEdit.Id, response.Id);
+        Assert.Equal(metDataToEdit.City, response.City);
+        Assert.Equal(metDataToEdit.WeatherDate, response.WeatherDate);
+        Assert.Equal(metDataToEdit.NightWeather, response.NightWeather);
+        Assert.Equal(metDataToEdit.MorningWeather, response.MorningWeather);
+        Assert.Equal(metDataToEdit.MinTemperature, response.MinTemperature);
+        Assert.Equal(metDataToEdit.MaxTemperature, response.MaxTemperature);
+        Assert.Equal(metDataToEdit.WindSpeed, response.WindSpeed);
+        Assert.Equal(metDataToEdit.humidity, response.humidity);
+        Assert.Equal(metDataToEdit.Precipitation, response.Precipitation);
+    }
+
+    [Fact(DisplayName ="Update - Verify if calls FindByID and Edit method in Repository, correctly ")]
+    public void PutVerifyCommunicationWithRepository()
+    {
+        var response = _service.EditMeteorologicalData(0, It.IsAny<UpdateMetDataDto>());
+        //Assert
+        _repository.Verify(r=> r.FindByID(It.IsAny<int>()),Times.Once());
+        _repository.Verify(r=>r.EditMeteorologicalData(), Times.Once());
+    }
+
+    [Fact(DisplayName = "Update with wrong ID - Failed")]
+    public void Put_EditWithInvalidId()
+    {
+        //Arrange
+        var metDataToEdit = new Fixture().Create<MeteorologicalDataEntity>();
+        var editionToInsert = new Fixture().Create<UpdateMetDataDto>();
+
+        _mapper.Setup(m => m.Map<MeteorologicalDataEntity>(editionToInsert))
+     .Returns((UpdateMetDataDto source) => new MeteorologicalDataEntity
+     {
+         Id = metDataToEdit.Id,
+         City = source.City,
+         WeatherDate = source.WeatherDate,
+         MorningWeather = source.MorningWeather,
+         NightWeather = source.NightWeather,
+         MaxTemperature = source.MaxTemperature,
+         MinTemperature = source.MinTemperature,
+         humidity = source.humidity,
+         WindSpeed = source.WindSpeed,
+         Precipitation = source.Precipitation
+     });
+        _repository.Setup(r => r.FindByID(metDataToEdit.Id)).Returns(metDataToEdit);
+        //Act
+        var response = _service.EditMeteorologicalData(300, editionToInsert);
+
+        //Assert
+        Assert.Null(response);
+    }
+
+    [Fact]
+    public void Patch_EditWithValidIdAndValidJsonPatch()
+    {
+        //Arrange
+        var jsonPatchDocument = new JsonPatchDocument<UpdateMetDataDto>();
+        jsonPatchDocument.Operations.Add(new Operation<UpdateMetDataDto>("replace", "/City", null, "Jerusalem"));
+        var metDataToEdit = new Fixture().Create<MeteorologicalDataEntity>();
+        _mapper.Setup(m => m.Map<UpdateMetDataDto>(metDataToEdit))
+            .Returns(() => new UpdateMetDataDto
+            {
+                City = metDataToEdit.City,
+                WeatherDate = metDataToEdit.WeatherDate,
+                MorningWeather = metDataToEdit.MorningWeather,
+                NightWeather = metDataToEdit.NightWeather,
+                MaxTemperature = metDataToEdit.MaxTemperature,
+                MinTemperature = metDataToEdit.MinTemperature,
+                humidity = metDataToEdit.humidity,
+                WindSpeed = metDataToEdit.WindSpeed,
+                Precipitation = metDataToEdit.Precipitation
+            });
+
+        var metDataAlreadyEdited = new MeteorologicalDataEntity
+        {
+            City = "Jerusalem",
+            WeatherDate = metDataToEdit.WeatherDate,
+            MorningWeather = metDataToEdit.MorningWeather,
+            NightWeather = metDataToEdit.NightWeather,
+            MaxTemperature = metDataToEdit.MaxTemperature,
+            MinTemperature = metDataToEdit.MinTemperature,
+            humidity = metDataToEdit.humidity,
+            WindSpeed = metDataToEdit.WindSpeed,
+            Precipitation = metDataToEdit.Precipitation
+
+        };
+        _mapper.Setup(m => m.Map<UpdateMetDataDto, MeteorologicalDataEntity>
+        (It.IsAny<UpdateMetDataDto>(), It.IsAny<MeteorologicalDataEntity>()))
+            .Returns(() => new MeteorologicalDataEntity
+            {
+                Id = metDataToEdit.Id,
+                City = metDataAlreadyEdited.City,
+                WeatherDate = metDataAlreadyEdited.WeatherDate,
+                MorningWeather = metDataAlreadyEdited.MorningWeather,
+                NightWeather = metDataAlreadyEdited.NightWeather,
+                MaxTemperature = metDataAlreadyEdited.MaxTemperature,
+                MinTemperature = metDataAlreadyEdited.MinTemperature,
+                humidity = metDataAlreadyEdited.humidity,
+                WindSpeed = metDataAlreadyEdited.WindSpeed,
+                Precipitation = metDataAlreadyEdited.Precipitation
+            });
+
+        _repository.Setup(r => r.FindByID(It.IsAny<int>())).Returns(metDataToEdit);
+        //Act
+        var response = _service.EditOnlyOneField(metDataToEdit.Id,jsonPatchDocument);
+        //Assert
+        Assert.NotNull(response);
+        Assert.Equal(metDataToEdit.Id, response.Id);
+        Assert.Equal(metDataAlreadyEdited.City, response.City);
+        Assert.Equal(metDataAlreadyEdited.WeatherDate, response.WeatherDate);
+    }
+    
+    [Fact(DisplayName = "Delete - Verify if calls Delete method in Repository, correctly ")]
+    public void DeleteVerifyComunnicationWithRepository()
+    {
+        // Arrange
+        int id = 0;
+        //Act
+        var response = _service.DeleteMeteorologicalData(id);
+        //Assert
+        _repository.Verify(r => r.DeleteById(id), Times.Once);
     }
     [Fact(DisplayName = "Delete by ID - Verify if calls Delete method in Repository, correctly")]
     public void Delete()
@@ -259,4 +396,5 @@ public class MeteorologicalDataServiceTests
         Assert.NotEqual(metData, response);
         
     }
+
 }
