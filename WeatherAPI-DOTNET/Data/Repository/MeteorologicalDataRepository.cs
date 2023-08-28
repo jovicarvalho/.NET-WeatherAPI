@@ -37,18 +37,17 @@ namespace WeatherAPI_DOTNET.Data.Repository
         {
             IEnumerable<MeteorologicalDataEntity> metData = _context.MeteorologicalData
                 .Where(metDataList => metDataList.City == cityName)
-                .ToList()
                 .OrderByDescending(metData => metData.WeatherDate)
-                .Take(7);
+                .Take(7)
+                .ToList();
             ;
             return metData;
         }
         public MeteorologicalDataEntity FindBySpecificDateAndCity(string cityName, DateTime date) {
-            List<MeteorologicalDataEntity> metDataList = _context.MeteorologicalData
-                .Where(metDataList => metDataList.City == cityName)
-                .ToList();
-            MeteorologicalDataEntity? metData = metDataList.FirstOrDefault(
+            var metData = _context.MeteorologicalData
+                .FirstOrDefault(
                metData =>
+               (metData.City == cityName) &&
                (metData.WeatherDate.Day == date.Day) &&
                (metData.WeatherDate.Month == date.Month) &&
                (metData.WeatherDate.Year == date.Year)
