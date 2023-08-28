@@ -78,6 +78,7 @@ public class MeteorologicalDataServiceTests
         Assert.Equal(result.NightWeather, createCorrectDTO.NightWeather);
         Assert.Equal(result.MorningWeather, createCorrectDTO.MorningWeather);
         Assert.Equal(result.MinTemperature, createCorrectDTO.MinTemperature);
+
         Assert.Equal(result.MaxTemperature, createCorrectDTO.MaxTemperature);
         Assert.Equal(result.WindSpeed, createCorrectDTO.WindSpeed);
         Assert.Equal(result.humidity, createCorrectDTO.humidity);
@@ -138,9 +139,10 @@ public class MeteorologicalDataServiceTests
         MeteorologicalDataEntity metDataToSearchByCity2 = new Fixture().Create<MeteorologicalDataEntity>();
         IEnumerable<MeteorologicalDataEntity> metDataList = new []{ metDataToSearchByCity, metDataToSearchByCity2 };
         _repository.Setup(r => r.FindByCity(metDataToSearchByCity.City)).Returns(metDataList);
-        IEnumerable<MeteorologicalDataEntity> metDataListOrdenated = metDataList
+        var metDataListOrdenated = metDataList
             .OrderByDescending(metData => metData.WeatherDate)
-            .Take(7);
+            .Take(7)
+            .ToList();
         //Act
         var response = _service.FindMeteorologicalDataByCityName(metDataToSearchByCity.City);
         //Assert
@@ -283,7 +285,6 @@ public class MeteorologicalDataServiceTests
         //Arrange
         var metDataToEdit = new Fixture().Create<MeteorologicalDataEntity>();
         var editionToInsert = new Fixture().Create<UpdateMetDataDto>();
-
         _mapper.Setup(m => m.Map<MeteorologicalDataEntity>(editionToInsert))
      .Returns((UpdateMetDataDto source) => new MeteorologicalDataEntity
      {
@@ -301,12 +302,11 @@ public class MeteorologicalDataServiceTests
         _repository.Setup(r => r.FindByID(metDataToEdit.Id)).Returns(metDataToEdit);
         //Act
         var response = _service.EditMeteorologicalData(300, editionToInsert);
-
         //Assert
         Assert.Null(response);
     }
 
-    [Fact]
+    [Fact(DisplayName ="Update only one field with Valid Jason PatchDocument - Sucess")]
     public void Patch_EditWithValidIdAndValidJsonPatch()
     {
         //Arrange
@@ -355,7 +355,6 @@ public class MeteorologicalDataServiceTests
                 WindSpeed = metDataAlreadyEdited.WindSpeed,
                 Precipitation = metDataAlreadyEdited.Precipitation
             });
-
         _repository.Setup(r => r.FindByID(It.IsAny<int>())).Returns(metDataToEdit);
         //Act
         var response = _service.EditOnlyOneField(metDataToEdit.Id,jsonPatchDocument);
@@ -394,7 +393,6 @@ public class MeteorologicalDataServiceTests
         var response = _service.DeleteMeteorologicalData(10);
         //Assert
         Assert.NotEqual(metData, response);
-        
     }
 
 }
