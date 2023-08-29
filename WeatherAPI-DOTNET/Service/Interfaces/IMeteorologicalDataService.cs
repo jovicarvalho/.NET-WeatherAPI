@@ -7,8 +7,8 @@ namespace WeatherAPI_DOTNET.Service.Interfaces
     public interface IMeteorologicalDataService
     {
         MeteorologicalDataEntity FindMeteorologicalDataByID(int id);
-        List<MeteorologicalDataEntity> FindMeteorologicalDataByCityName(string cityName);
-        MeteorologicalDataEntity FindMeteoroloficalDataBySpecificDate(DateTime dateOnly, string cityName);
+        IEnumerable<MeteorologicalDataEntity> FindMeteorologicalDataByCityName(string cityName);
+        MeteorologicalDataEntity FindMeteoroloficalDataBySpecificDate(string cityName, DateTime dateOnly);
         MeteorologicalDataEntity FindActualDay(string cityName);
         MeteorologicalDataEntity CreateMeteorologicalData(CreateMetDataDto metDataDto);
         IEnumerable<MeteorologicalDataEntity> FindAllMeteorologicalData(int skip);
