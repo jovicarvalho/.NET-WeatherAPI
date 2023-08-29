@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using AutoMapper;
 using WeatherAPI_DOTNET.Data.Dtos;
 using WeatherAPI_DOTNET.Service.Interfaces;
+using WeatherAPI_DOTNET.Service;
 
 namespace WeatherAPI_DOTNET.Controllers;
 
@@ -18,7 +19,8 @@ public class MeteorologicalDataController: ControllerBase
     public MeteorologicalDataController(
         MeteorologicalDataContext context,
         IMapper mapper, 
-        IMeteorologicalDataService service)
+        IMeteorologicalDataService service
+        )
     {
         _context = context;
         _mapper = mapper;
@@ -34,9 +36,9 @@ public class MeteorologicalDataController: ControllerBase
     }
 
     [HttpGet]
-    public IEnumerable<MeteorologicalDataEntity> GetAll([FromQuery] int skip = 0)
+    public IEnumerable<MeteorologicalDataEntity> GetAll([FromQuery] int skip)
     {
-        return _service.FindAllMeteorologicalData(skip);
+        return _service.FindAllMeteorologicalData((skip));
     }
 
 
@@ -50,9 +52,7 @@ public class MeteorologicalDataController: ControllerBase
     [HttpGet("city={cityName}")]
     public IActionResult FindMeteorologicalDataByCity (string cityName)
     {
-        IEnumerable<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName)
-            .OrderByDescending(metData => metData.WeatherDate)
-            .Take(7);
+       IEnumerable<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName);
        return metDataList.Any() ? Ok(metDataList) : NotFound("There is no Meteorological Data found with this City");
     }
 
@@ -67,7 +67,7 @@ public class MeteorologicalDataController: ControllerBase
     [HttpGet("specificDate/city={cityName}")]
     public IActionResult FindSpecificDateInCity(string cityName, [FromBody] DateTime date)
     {
-        MeteorologicalDataEntity especificDate = _service.FindMeteoroloficalDataBySpecificDate(date, cityName);
+        MeteorologicalDataEntity especificDate = _service.FindMeteoroloficalDataBySpecificDate(cityName, date);
         return especificDate is null ? NotFound() : Ok(especificDate);
     }
 
@@ -79,15 +79,16 @@ public class MeteorologicalDataController: ControllerBase
         MeteorologicalDataEntity metDataEdited = _service.EditMeteorologicalData(id, metDataDto);
         return metDataEdited is null ? NotFound("Id not found") : Ok(metDataEdited);
     }
-  
+
 
     [HttpPatch("{id}")]
     public IActionResult ParcialEditMeteorologicalDataByID(
         int id,
         [FromBody] JsonPatchDocument<UpdateMetDataDto> patch) 
     {
-        _service.EditOnlyOneField(id, patch);
-        return Ok();
+        var metDataEdited = _service.EditOnlyOneField(id, patch);
+        Console.WriteLine(patch);
+        return Ok(metDataEdited);
     }
 
     [HttpDelete("{id}")]
