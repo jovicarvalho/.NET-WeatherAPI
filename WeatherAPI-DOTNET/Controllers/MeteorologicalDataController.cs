@@ -18,7 +18,7 @@ public class MeteorologicalDataController: ControllerBase
     private IMeteorologicalDataService _service;
     public MeteorologicalDataController(
         MeteorologicalDataContext context,
-        IMapper mapper, 
+        IMapper mapper,
         IMeteorologicalDataService service
         )
     {
@@ -43,17 +43,17 @@ public class MeteorologicalDataController: ControllerBase
 
 
     [HttpGet("{id}")]
-    public IActionResult FindMeteorologicalDataByID(int id)
+    public IActionResult FindMeteorologicalDataByID(Guid id)
     {
         var metData = _service.FindMeteorologicalDataByID(id);
         return metData is null ? NotFound("Meteorological Data not Found") : Ok(metData);
     }
 
     [HttpGet("city={cityName}")]
-    public IActionResult FindMeteorologicalDataByCity (string cityName)
+    public IActionResult FindMeteorologicalDataByCity(string cityName)
     {
-       IEnumerable<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName);
-       return metDataList.Any() ? Ok(metDataList) : NotFound("There is no Meteorological Data found with this City");
+        IEnumerable<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName);
+        return metDataList.Any() ? Ok(metDataList) : NotFound("There is no Meteorological Data found with this City");
     }
 
     [HttpGet("actualDay/city={cityName}")]
@@ -73,7 +73,7 @@ public class MeteorologicalDataController: ControllerBase
 
     [HttpPut("{id}")]
     public IActionResult UpdateMeteorologicalDataById(
-        int id,
+        Guid id,
         [FromBody] UpdateMetDataDto metDataDto)
     {
         MeteorologicalDataEntity metDataEdited = _service.EditMeteorologicalData(id, metDataDto);
@@ -83,8 +83,8 @@ public class MeteorologicalDataController: ControllerBase
 
     [HttpPatch("{id}")]
     public IActionResult ParcialEditMeteorologicalDataByID(
-        int id,
-        [FromBody] JsonPatchDocument<UpdateMetDataDto> patch) 
+        Guid id,
+        [FromBody] JsonPatchDocument<UpdateMetDataDto> patch)
     {
         var metDataEdited = _service.EditOnlyOneField(id, patch);
         Console.WriteLine(patch);
@@ -92,7 +92,7 @@ public class MeteorologicalDataController: ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteMeteorologicalDataByID(int id )
+    public IActionResult DeleteMeteorologicalDataByID(Guid id)
     {
         return _service.DeleteMeteorologicalData(id) is null ? NotFound("Id not found.") : Ok("Deleted with Sucess!");
     }
