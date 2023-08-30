@@ -29,11 +29,11 @@ public class MeteorologicalDataService : IMeteorologicalDataService
 
     public IEnumerable<MeteorologicalDataEntity> FindAllMeteorologicalData(int skip)
     {
-        return _repository.GetAll(skip*10);
+        return _repository.GetAll(skip * 10);
     }
 
-    public  MeteorologicalDataEntity FindMeteorologicalDataByID(int id)
-    {   
+    public MeteorologicalDataEntity FindMeteorologicalDataByID(Guid id)
+    {
         var metData = _repository.FindByID(id);
         return metData;
     }
@@ -65,16 +65,16 @@ public class MeteorologicalDataService : IMeteorologicalDataService
         return metData;
     }
 
-    public MeteorologicalDataEntity EditMeteorologicalData(int id, UpdateMetDataDto metDataDto)
+    public MeteorologicalDataEntity EditMeteorologicalData(Guid id, UpdateMetDataDto metDataDto)
     {
         var metData = FindMeteorologicalDataByID(id);
         _mapper.Map(metDataDto, metData);
         _repository.EditMeteorologicalData();
-        return metData; 
+        return metData;
     }
 
 
-    public MeteorologicalDataEntity EditOnlyOneField(int id, JsonPatchDocument<UpdateMetDataDto> patch)
+    public MeteorologicalDataEntity EditOnlyOneField(Guid id, JsonPatchDocument<UpdateMetDataDto> patch)
     {
         var metDatainRepository = FindMeteorologicalDataByID(id);
         var uptadeDto = _mapper.Map<UpdateMetDataDto>(metDatainRepository);
@@ -84,10 +84,10 @@ public class MeteorologicalDataService : IMeteorologicalDataService
         return metDataAlreadyEdited;
     }
 
-    public MeteorologicalDataEntity DeleteMeteorologicalData(int id)
+    public MeteorologicalDataEntity DeleteMeteorologicalData(Guid id)
     {
         var metData = _repository.DeleteById(id);
         return metData;
     }
- 
+
 }
