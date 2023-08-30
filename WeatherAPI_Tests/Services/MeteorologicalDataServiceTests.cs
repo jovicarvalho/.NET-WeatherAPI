@@ -44,16 +44,16 @@ public class MeteorologicalDataServiceTests
         NightWeather = "Sunny",
         MaxTemperature = 70,
         MinTemperature = 0,
-        humidity = 20,
+        Humidity = 20,
         WindSpeed = 20,
         Precipitation = 20
     };
-    
-    [Fact(DisplayName ="Create With Valid Entity - Sucess")]
+
+    [Fact(DisplayName = "Create With Valid Entity - Sucess")]
     public void PostSucess_SendingValidEntity()
     {
         //  Arrange         
-      
+
         _mapper.Setup(m => m.Map<MeteorologicalDataEntity>(createCorrectDTO)).Returns((CreateMetDataDto source) => new MeteorologicalDataEntity
         {
             City = source.City,
@@ -62,7 +62,7 @@ public class MeteorologicalDataServiceTests
             NightWeather = source.NightWeather,
             MaxTemperature = source.MaxTemperature,
             MinTemperature = source.MinTemperature,
-            humidity = source.humidity,
+            Humidity = source.Humidity,
             WindSpeed = source.WindSpeed,
             Precipitation = source.Precipitation
         });
@@ -81,7 +81,7 @@ public class MeteorologicalDataServiceTests
 
         Assert.Equal(result.MaxTemperature, createCorrectDTO.MaxTemperature);
         Assert.Equal(result.WindSpeed, createCorrectDTO.WindSpeed);
-        Assert.Equal(result.humidity, createCorrectDTO.humidity);
+        Assert.Equal(result.Humidity, createCorrectDTO.Humidity);
         Assert.Equal(result.Precipitation, createCorrectDTO.Precipitation);
     }
     [Fact(DisplayName = "Create - Verify if calls Add method in Repository, correctly")]
@@ -91,13 +91,13 @@ public class MeteorologicalDataServiceTests
         _repository.Verify(r => r.Add(It.IsAny<MeteorologicalDataEntity>()), Times.Once);
     }
 
-    [Fact(DisplayName ="Get by Id With Valid Id - Sucess")]
+    [Fact(DisplayName = "Get by Id With Valid Id - Sucess")]
     public void GetByID_ValidID()
     {
         //Arrange
 
         MeteorologicalDataEntity metDataWithID = new Fixture().Create<MeteorologicalDataEntity>();
-        _repository.Setup(r=>r.FindByID(metDataWithID.Id)).Returns(metDataWithID);
+        _repository.Setup(r => r.FindByID(metDataWithID.Id)).Returns(metDataWithID);
 
         //Act
         var result = _service.FindMeteorologicalDataByID(metDataWithID.Id);
@@ -110,46 +110,46 @@ public class MeteorologicalDataServiceTests
     public void GetByIDVerifysCommunicationWithRepository()
     {
         //Arrange
-        int id = 0;
+        Guid randomGuid = Guid.NewGuid();
         //Act
-        var result = _service.FindMeteorologicalDataByID(id);
+        var result = _service.FindMeteorologicalDataByID(randomGuid);
         //Assert
-        _repository.Verify(r => r.FindByID(id), Times.Once);
+        _repository.Verify(r => r.FindByID(randomGuid), Times.Once);
     }
 
-    [Fact(DisplayName ="Get by Id With Invalid Id - Failed")]
+    [Fact(DisplayName = "Get by Id With Invalid Id - Failed")]
     public void GetByIDFailed_InvalidID()
     {
         //Arrange
 
         MeteorologicalDataEntity metDataWithID = new Fixture().Create<MeteorologicalDataEntity>();
         _repository.Setup(r => r.FindByID(metDataWithID.Id)).Returns(metDataWithID);
-
+        var randomGuid = Guid.NewGuid();
         //Act
-        var result = _service.FindMeteorologicalDataByID(1);
+        var result = _service.FindMeteorologicalDataByID(randomGuid);
 
         //Assert
         Assert.Null(result);
     }
 
-    [Fact(DisplayName ="Get by City With Valid City - Sucess")]
-    public void GetByCityName_ValidCity(){
+    [Fact(DisplayName = "Get by City With Valid City - Sucess")]
+    public void GetByCityName_ValidCity()
+    {
         //Arrange
         MeteorologicalDataEntity metDataToSearchByCity = new Fixture().Create<MeteorologicalDataEntity>();
         MeteorologicalDataEntity metDataToSearchByCity2 = new Fixture().Create<MeteorologicalDataEntity>();
-        IEnumerable<MeteorologicalDataEntity> metDataList = new []{ metDataToSearchByCity, metDataToSearchByCity2 };
+        IEnumerable<MeteorologicalDataEntity> metDataList = new[] { metDataToSearchByCity, metDataToSearchByCity2 };
         _repository.Setup(r => r.FindByCity(metDataToSearchByCity.City)).Returns(metDataList);
         var metDataListOrdenated = metDataList
             .OrderByDescending(metData => metData.WeatherDate)
-            .Take(7)
-            .ToList();
+            .Take(7);
         //Act
         var response = _service.FindMeteorologicalDataByCityName(metDataToSearchByCity.City);
         //Assert
         Assert.Equal(metDataListOrdenated, response);
     }
 
-    [Fact(DisplayName ="Get by City With Invalid City - Failed")]
+    [Fact(DisplayName = "Get by City With Invalid City - Failed")]
     public void GetByCityNameFailed_InValidCity()
     {
         //Arrange
@@ -164,24 +164,24 @@ public class MeteorologicalDataServiceTests
         //Act
         var response = _service.FindMeteorologicalDataByCityName("testCity");
         //Assert
-        Assert.Equal(emptyList,response);
-     }
+        Assert.Equal(emptyList, response);
+    }
 
-    [Fact(DisplayName ="Get by Date(Actual Day) and City - Sucess")]
+    [Fact(DisplayName = "Get by Date(Actual Day) and City - Sucess")]
     public void GetByActualDay()
     {
         //Arrange
         var actualDay = DateTime.Now.Date;
         var metData = new MeteorologicalDataEntity
         {
-            Id= 1,
+            Id = new Guid(),
             City = "Roma",
             WeatherDate = actualDay,
             MorningWeather = "Sunny",
             NightWeather = "Sunny",
             MaxTemperature = 70,
             MinTemperature = 0,
-            humidity = 20,
+            Humidity = 20,
             WindSpeed = 20,
             Precipitation = 20
         };
@@ -194,7 +194,7 @@ public class MeteorologicalDataServiceTests
         _repository.Verify(r => r.FindBySpecificDateAndCity(metData.City, actualDay), Times.Once);
     }
 
-    [Fact(DisplayName ="Get by Date and City - Sucess")]
+    [Fact(DisplayName = "Get by Date and City - Sucess")]
     public void GetBySpecificDate_ValidDate()
     {
         //Arrange
@@ -207,12 +207,12 @@ public class MeteorologicalDataServiceTests
         _repository.Verify(r => r.FindBySpecificDateAndCity(metData.City, metData.WeatherDate), Times.Once);
     }
 
-    [Fact(DisplayName ="Get All Meteorological datas - Sucess")]
+    [Fact(DisplayName = "Get All Meteorological datas - Sucess")]
     public void GetAllMeteorologicalDataSucessCall()
     {
         //Arrange
         IEnumerable<MeteorologicalDataEntity> metDataList = new Fixture().Create<IEnumerable<MeteorologicalDataEntity>>();
-        _repository.Setup(r=>r.GetAll(It.IsAny<int>())).Returns(metDataList);
+        _repository.Setup(r => r.GetAll(It.IsAny<int>())).Returns(metDataList);
         var skip = 0;
         //Act
         var response = _service.FindAllMeteorologicalData(skip);
@@ -220,24 +220,26 @@ public class MeteorologicalDataServiceTests
         Assert.Equal(metDataList, response);
     }
 
-    [Fact(DisplayName ="Delete by Id with Valid - Sucess ")]
+    [Fact(DisplayName = "Delete by Id with Valid - Sucess ")]
     public void Delete_ValidId()
     {
         // Arrange
         MeteorologicalDataEntity metData = new Fixture().Create<MeteorologicalDataEntity>();
-        _repository.Setup(r=>r.DeleteById(metData.Id)).Returns(metData);
+        _repository.Setup(r => r.DeleteById(metData.Id)).Returns(metData);
         //Act
         var response = _service.DeleteMeteorologicalData(metData.Id);
         //Assert
-        Assert.Equal(metData,response); 
-        _repository.Verify(r=>r.DeleteById(metData.Id), Times.Once);
+        Assert.Equal(metData, response);
+        _repository.Verify(r => r.DeleteById(metData.Id), Times.Once);
     }
 
-    [Fact(DisplayName ="Update by Id with Valid DTO - Sucess")] 
-    public void Put_EditWithValidIdAndValidUpdateDto() {
+    [Fact(DisplayName = "Update by Id with Valid DTO - Sucess")]
+    public void Put_EditWithValidIdAndValidUpdateDto()
+    {
         //Arrange
         var metDataToEdit = new Fixture().Create<MeteorologicalDataEntity>();
         var editionToInsert = new Fixture().Create<UpdateMetDataDto>();
+        var randomGuid = Guid.NewGuid();
 
         _mapper.Setup(m => m.Map<MeteorologicalDataEntity>(editionToInsert))
      .Returns((UpdateMetDataDto source) => new MeteorologicalDataEntity
@@ -249,13 +251,13 @@ public class MeteorologicalDataServiceTests
          NightWeather = source.NightWeather,
          MaxTemperature = source.MaxTemperature,
          MinTemperature = source.MinTemperature,
-         humidity = source.humidity,
+         Humidity = source.Humidity,
          WindSpeed = source.WindSpeed,
          Precipitation = source.Precipitation
      });
-        _repository.Setup(r => r.FindByID(It.IsAny<int>())).Returns(metDataToEdit);
+        _repository.Setup(r => r.FindByID(It.IsAny<Guid>())).Returns(metDataToEdit);
         //Act
-        var response = _service.EditMeteorologicalData(0, editionToInsert);
+        var response = _service.EditMeteorologicalData(randomGuid, editionToInsert);
 
         //Assert
         Assert.Equal(metDataToEdit.Id, response.Id);
@@ -266,17 +268,17 @@ public class MeteorologicalDataServiceTests
         Assert.Equal(metDataToEdit.MinTemperature, response.MinTemperature);
         Assert.Equal(metDataToEdit.MaxTemperature, response.MaxTemperature);
         Assert.Equal(metDataToEdit.WindSpeed, response.WindSpeed);
-        Assert.Equal(metDataToEdit.humidity, response.humidity);
+        Assert.Equal(metDataToEdit.Humidity, response.Humidity);
         Assert.Equal(metDataToEdit.Precipitation, response.Precipitation);
     }
 
-    [Fact(DisplayName ="Update - Verify if calls FindByID and Edit method in Repository, correctly ")]
+    [Fact(DisplayName = "Update - Verify if calls FindByID and Edit method in Repository, correctly ")]
     public void PutVerifyCommunicationWithRepository()
     {
-        var response = _service.EditMeteorologicalData(0, It.IsAny<UpdateMetDataDto>());
+        var response = _service.EditMeteorologicalData(Guid.NewGuid(), It.IsAny<UpdateMetDataDto>());
         //Assert
-        _repository.Verify(r=> r.FindByID(It.IsAny<int>()),Times.Once());
-        _repository.Verify(r=>r.EditMeteorologicalData(), Times.Once());
+        _repository.Verify(r => r.FindByID(It.IsAny<Guid>()), Times.Once());
+        _repository.Verify(r => r.EditMeteorologicalData(), Times.Once());
     }
 
     [Fact(DisplayName = "Update with wrong ID - Failed")]
@@ -295,18 +297,18 @@ public class MeteorologicalDataServiceTests
          NightWeather = source.NightWeather,
          MaxTemperature = source.MaxTemperature,
          MinTemperature = source.MinTemperature,
-         humidity = source.humidity,
+         Humidity = source.Humidity,
          WindSpeed = source.WindSpeed,
          Precipitation = source.Precipitation
      });
         _repository.Setup(r => r.FindByID(metDataToEdit.Id)).Returns(metDataToEdit);
         //Act
-        var response = _service.EditMeteorologicalData(300, editionToInsert);
+        var response = _service.EditMeteorologicalData(Guid.NewGuid(), editionToInsert);
         //Assert
         Assert.Null(response);
     }
 
-    [Fact(DisplayName ="Update only one field with Valid Jason PatchDocument - Sucess")]
+    [Fact(DisplayName = "Update only one field with Valid Jason PatchDocument - Sucess")]
     public void Patch_EditWithValidIdAndValidJsonPatch()
     {
         //Arrange
@@ -322,7 +324,7 @@ public class MeteorologicalDataServiceTests
                 NightWeather = metDataToEdit.NightWeather,
                 MaxTemperature = metDataToEdit.MaxTemperature,
                 MinTemperature = metDataToEdit.MinTemperature,
-                humidity = metDataToEdit.humidity,
+                Humidity = metDataToEdit.Humidity,
                 WindSpeed = metDataToEdit.WindSpeed,
                 Precipitation = metDataToEdit.Precipitation
             });
@@ -335,7 +337,7 @@ public class MeteorologicalDataServiceTests
             NightWeather = metDataToEdit.NightWeather,
             MaxTemperature = metDataToEdit.MaxTemperature,
             MinTemperature = metDataToEdit.MinTemperature,
-            humidity = metDataToEdit.humidity,
+            Humidity = metDataToEdit.Humidity,
             WindSpeed = metDataToEdit.WindSpeed,
             Precipitation = metDataToEdit.Precipitation
 
@@ -351,25 +353,25 @@ public class MeteorologicalDataServiceTests
                 NightWeather = metDataAlreadyEdited.NightWeather,
                 MaxTemperature = metDataAlreadyEdited.MaxTemperature,
                 MinTemperature = metDataAlreadyEdited.MinTemperature,
-                humidity = metDataAlreadyEdited.humidity,
+                Humidity = metDataAlreadyEdited.Humidity,
                 WindSpeed = metDataAlreadyEdited.WindSpeed,
                 Precipitation = metDataAlreadyEdited.Precipitation
             });
-        _repository.Setup(r => r.FindByID(It.IsAny<int>())).Returns(metDataToEdit);
+        _repository.Setup(r => r.FindByID(It.IsAny<Guid>())).Returns(metDataToEdit);
         //Act
-        var response = _service.EditOnlyOneField(metDataToEdit.Id,jsonPatchDocument);
+        var response = _service.EditOnlyOneField(metDataToEdit.Id, jsonPatchDocument);
         //Assert
         Assert.NotNull(response);
         Assert.Equal(metDataToEdit.Id, response.Id);
         Assert.Equal(metDataAlreadyEdited.City, response.City);
         Assert.Equal(metDataAlreadyEdited.WeatherDate, response.WeatherDate);
     }
-    
+
     [Fact(DisplayName = "Delete - Verify if calls Delete method in Repository, correctly ")]
     public void DeleteVerifyComunnicationWithRepository()
     {
         // Arrange
-        int id = 0;
+        var id = Guid.NewGuid();
         //Act
         var response = _service.DeleteMeteorologicalData(id);
         //Assert
@@ -378,19 +380,19 @@ public class MeteorologicalDataServiceTests
     [Fact(DisplayName = "Delete by ID - Verify if calls Delete method in Repository, correctly")]
     public void Delete()
     {
-        int id = 0; 
+        var id = Guid.NewGuid();
         var response = _service.DeleteMeteorologicalData(id);
         //Assert
         _repository.Verify(r => r.DeleteById(id), Times.Once);
     }
-    [Fact(DisplayName ="Delete by Id with Invalid Id - Failed")]
+    [Fact(DisplayName = "Delete by Id with Invalid Id - Failed")]
     public void DeleteFailed_InvalidId()
     {
         // Arrange
         MeteorologicalDataEntity metData = new Fixture().Create<MeteorologicalDataEntity>();
         _repository.Setup(r => r.DeleteById(metData.Id)).Returns(metData);
         //Act
-        var response = _service.DeleteMeteorologicalData(10);
+        var response = _service.DeleteMeteorologicalData(Guid.NewGuid());
         //Assert
         Assert.NotEqual(metData, response);
     }
