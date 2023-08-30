@@ -12,11 +12,6 @@ public class MeteorologicalDataContext: DbContext
             modelBuilder.Entity<MeteorologicalDataEntity>()
                 .Property(e => e.WeatherDate)
                 .HasColumnType("date");
-
-            modelBuilder.Entity<MeteorologicalDataEntity>()
-            .Property(e => e.Id)
-            .HasConversion(id => id,
-                id => id == Guid.Empty ? Guid.NewGuid() : id); 
         }
 
     public DbSet<MeteorologicalDataEntity> MeteorologicalData { get; set; }
