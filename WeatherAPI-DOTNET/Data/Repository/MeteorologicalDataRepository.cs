@@ -18,8 +18,8 @@ namespace WeatherAPI_DOTNET.Data.Repository
         }
         public void Add(MeteorologicalDataEntity metData)
         {
-                _context.MeteorologicalData.Add(metData);
-                _context.SaveChanges();
+            _context.MeteorologicalData.Add(metData);
+            _context.SaveChanges();
         }
 
         public IEnumerable<MeteorologicalDataEntity> GetAll(int skip)
@@ -27,7 +27,7 @@ namespace WeatherAPI_DOTNET.Data.Repository
             return _context.MeteorologicalData.Skip(skip).Take(10);
         }
 
-        public MeteorologicalDataEntity FindByID(int id)
+        public MeteorologicalDataEntity? FindByID(Guid id)
         {
             MeteorologicalDataEntity? metData = _context.MeteorologicalData.FirstOrDefault(metData => metData.Id == id);
             return metData;
@@ -43,7 +43,8 @@ namespace WeatherAPI_DOTNET.Data.Repository
             ;
             return metData;
         }
-        public MeteorologicalDataEntity FindBySpecificDateAndCity(string cityName, DateTime date) {
+        public MeteorologicalDataEntity FindBySpecificDateAndCity(string cityName, DateTime date)
+        {
             var metData = _context.MeteorologicalData
                 .FirstOrDefault(
                metData =>
@@ -55,7 +56,7 @@ namespace WeatherAPI_DOTNET.Data.Repository
             return metData;
         }
 
-        public MeteorologicalDataEntity DeleteById(int id)
+        public MeteorologicalDataEntity DeleteById(Guid id)
         {
             MeteorologicalDataEntity metData = FindByID(id);
             _context.Remove(metData);
