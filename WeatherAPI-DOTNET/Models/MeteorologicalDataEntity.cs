@@ -6,7 +6,7 @@ namespace WeatherAPI_DOTNET.Models;
 public class MeteorologicalDataEntity
 {
     [Key]
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     
     [Required(ErrorMessage = "Informar a cidade é obrigatório.")]
     [StringLength(35, ErrorMessage = "O nome da cidade não deve exceder 50 caracteres")]
@@ -29,7 +29,7 @@ public class MeteorologicalDataEntity
     
     [Required(ErrorMessage ="O campo de humidade é obrigatório")]
     [Range(0, 100, ErrorMessage = "A humidade deve ser entre 0 e 100%")]
-    public int humidity { get; set; }
+    public int Humidity { get; set; }
     
     [Required(ErrorMessage = "O campo de precipitação é obrigatório")]
     [Range(0, 100, ErrorMessage = "A precipitação deve ser entre 0 e 100%")]

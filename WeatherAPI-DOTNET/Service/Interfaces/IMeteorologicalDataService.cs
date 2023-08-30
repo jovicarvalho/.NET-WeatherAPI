@@ -6,15 +6,15 @@ namespace WeatherAPI_DOTNET.Service.Interfaces
 {
     public interface IMeteorologicalDataService
     {
-        MeteorologicalDataEntity FindMeteorologicalDataByID(int id);
+        MeteorologicalDataEntity FindMeteorologicalDataByID(Guid id);
         IEnumerable<MeteorologicalDataEntity> FindMeteorologicalDataByCityName(string cityName);
         MeteorologicalDataEntity FindMeteoroloficalDataBySpecificDate(string cityName, DateTime dateOnly);
         MeteorologicalDataEntity FindActualDay(string cityName);
         MeteorologicalDataEntity CreateMeteorologicalData(CreateMetDataDto metDataDto);
         IEnumerable<MeteorologicalDataEntity> FindAllMeteorologicalData(int skip);
-        MeteorologicalDataEntity EditMeteorologicalData(int id, UpdateMetDataDto metDataDto);
-        MeteorologicalDataEntity EditOnlyOneField(int id, JsonPatchDocument<UpdateMetDataDto> patch);
-        MeteorologicalDataEntity DeleteMeteorologicalData(int id);
+        MeteorologicalDataEntity EditMeteorologicalData(Guid id, UpdateMetDataDto metDataDto);
+        MeteorologicalDataEntity EditOnlyOneField(Guid id, JsonPatchDocument<UpdateMetDataDto> patch);
+        MeteorologicalDataEntity DeleteMeteorologicalData(Guid id);
 
     }
 }

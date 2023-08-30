@@ -7,10 +7,10 @@ namespace WeatherAPI_DOTNET.Data.Repository.Interfaces
         void Add(MeteorologicalDataEntity metData);
         IEnumerable<MeteorologicalDataEntity> GetAll(int skip);
         IEnumerable<MeteorologicalDataEntity> FindByCity(string city);
-        MeteorologicalDataEntity FindByID(int id);
+        MeteorologicalDataEntity FindByID(Guid id);
         MeteorologicalDataEntity FindBySpecificDateAndCity(string cityName, DateTime date);
         void EditMeteorologicalData();
-        MeteorologicalDataEntity DeleteById(int id);
+        MeteorologicalDataEntity DeleteById(Guid id);
     }
 }
     

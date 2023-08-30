@@ -24,16 +24,17 @@ namespace WeatherAPI_DOTNET.Migrations
 
             modelBuilder.Entity("WeatherAPI_DOTNET.Models.MeteorologicalDataEntity", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("City")
                         .IsRequired()
                         .HasMaxLength(35)
                         .HasColumnType("character varying(35)");
+
+                    b.Property<int>("Humidity")
+                        .HasColumnType("integer");
 
                     b.Property<int>("MaxTemperature")
                         .HasColumnType("integer");
@@ -56,9 +57,6 @@ namespace WeatherAPI_DOTNET.Migrations
                         .HasColumnType("date");
 
                     b.Property<int>("WindSpeed")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("humidity")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
