@@ -10,7 +10,7 @@ namespace WeatherAPI_DOTNET.Data.Dtos
         public string NightWeather { get; set; }
         public int MaxTemperature { get; set; }
         public int MinTemperature { get; set; }
-        public int humidity { get; set; }
+        public int Humidity { get; set; }
         public int Precipitation { get; set; }
         public int WindSpeed { get; set; }
     }
