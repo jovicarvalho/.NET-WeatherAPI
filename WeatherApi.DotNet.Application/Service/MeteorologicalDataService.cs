@@ -1,14 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Globalization;
 using System.Reflection.Metadata;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using WeatherAPI_DOTNET.Context;
 using WeatherAPI_DOTNET.Data.Dtos;
 using WeatherAPI_DOTNET.Data.Repository;
 using WeatherAPI_DOTNET.Data.Repository.Interfaces;

@@ -18,7 +18,7 @@ using WeatherAPI_DOTNET.Service;
 using WeatherAPI_DOTNET.Service.Interfaces;
 using Xunit;
 
-namespace WeatherAPI_Tests.Services;
+namespace WeatherApi.DotNet.Tests.Systems.ServicesUnitTests;
 
 public class MeteorologicalDataServiceTests
 {
@@ -342,7 +342,7 @@ public class MeteorologicalDataServiceTests
             Precipitation = metDataToEdit.Precipitation
 
         };
-        _mapper.Setup(m => m.Map<UpdateMetDataDto, MeteorologicalDataEntity>
+        _mapper.Setup(m => m.Map
         (It.IsAny<UpdateMetDataDto>(), It.IsAny<MeteorologicalDataEntity>()))
             .Returns(() => new MeteorologicalDataEntity
             {

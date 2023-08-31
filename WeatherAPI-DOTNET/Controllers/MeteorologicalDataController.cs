@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WeatherAPI_DOTNET.Context;
 using WeatherAPI_DOTNET.Models;
 using Microsoft.AspNetCore.JsonPatch;
-using AutoMapper;
 using WeatherAPI_DOTNET.Data.Dtos;
 using WeatherAPI_DOTNET.Service.Interfaces;
-using WeatherAPI_DOTNET.Service;
+
 
 namespace WeatherAPI_DOTNET.Controllers;
 
@@ -13,17 +11,10 @@ namespace WeatherAPI_DOTNET.Controllers;
 [Route("[controller]")]
 public class MeteorologicalDataController: ControllerBase
 {
-    private MeteorologicalDataContext _context;
-    private IMapper _mapper;
+    
     private IMeteorologicalDataService _service;
-    public MeteorologicalDataController(
-        MeteorologicalDataContext context,
-        IMapper mapper,
-        IMeteorologicalDataService service
-        )
+    public MeteorologicalDataController(IMeteorologicalDataService service)
     {
-        _context = context;
-        _mapper = mapper;
         _service = service;
     }
 
