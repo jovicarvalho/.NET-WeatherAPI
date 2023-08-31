@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WeatherApi.DotNet.Domain\WeatherApi.DotNet.Domain.csproj" />
+    <ProjectReference Include="..\WeatherApi.DotNet.Persistence\WeatherApi.DotNet.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>

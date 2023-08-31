@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using WeatherAPI_DOTNET.Context;
 using WeatherAPI_DOTNET.Data.Repository.Interfaces;
@@ -12,7 +11,7 @@ namespace WeatherAPI_DOTNET.Data.Repository
     {
         private MeteorologicalDataContext _context;
 
-        public MeteorologicalDataRepository(MeteorologicalDataContext context, IMapper mapper)
+        public MeteorologicalDataRepository(MeteorologicalDataContext context)
         {
             _context = context;
         }

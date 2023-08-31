@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.JsonPatch;
-using WeatherAPI_DOTNET.Data.Dtos;
 using WeatherAPI_DOTNET.Models;
+using WeatherAPI_DOTNET.Data.Dtos;
 
 namespace WeatherAPI_DOTNET.Service.Interfaces
 {
