@@ -21,15 +21,17 @@ public class MeteorologicalDataController: ControllerBase
     [HttpPost]
     public IActionResult CreateMeteorologicalData([FromBody] CreateMetDataDto metDataDto)
     {
+        if(!ModelState.IsValid) return BadRequest(ModelState);
         MeteorologicalDataEntity metDataEntity = _service.CreateMeteorologicalData(metDataDto);
         return CreatedAtAction(nameof(FindMeteorologicalDataByID), new { id = metDataEntity.Id },
             metDataEntity);
     }
 
     [HttpGet]
-    public IEnumerable<MeteorologicalDataEntity> GetAll([FromQuery] int skip)
+    public IActionResult GetAll([FromQuery] int skip)
     {
-        return _service.FindAllMeteorologicalData((skip));
+        var metDataList = _service.FindAllMeteorologicalData((skip));
+        return metDataList.Any() ? Ok(metDataList) : NoContent(); 
     }
 
 

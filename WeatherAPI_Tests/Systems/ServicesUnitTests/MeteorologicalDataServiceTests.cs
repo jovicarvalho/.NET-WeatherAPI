@@ -139,7 +139,7 @@ public class MeteorologicalDataServiceTests
         MeteorologicalDataEntity metDataToSearchByCity = new Fixture().Create<MeteorologicalDataEntity>();
         MeteorologicalDataEntity metDataToSearchByCity2 = new Fixture().Create<MeteorologicalDataEntity>();
         IEnumerable<MeteorologicalDataEntity> metDataList = new[] { metDataToSearchByCity, metDataToSearchByCity2 };
-        _repository.Setup(r => r.FindByCity(metDataToSearchByCity.City)).Returns(metDataList);
+        _repository.Setup(r => r.FindByCity(metDataToSearchByCity.City)).Returns(metDataList.ToList());
         var metDataListOrdenated = metDataList
             .OrderByDescending(metData => metData.WeatherDate)
             .Take(7);
