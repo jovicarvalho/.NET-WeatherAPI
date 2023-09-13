@@ -136,15 +136,14 @@ public class MeteorologicalDataServiceTests
     public void GetByCityName_ValidCity()
     {
         //Arrange
-        MeteorologicalDataEntity metDataToSearchByCity = new Fixture().Create<MeteorologicalDataEntity>();
-        MeteorologicalDataEntity metDataToSearchByCity2 = new Fixture().Create<MeteorologicalDataEntity>();
-        IEnumerable<MeteorologicalDataEntity> metDataList = new[] { metDataToSearchByCity, metDataToSearchByCity2 };
-        _repository.Setup(r => r.FindByCity(metDataToSearchByCity.City)).Returns(metDataList);
+        var cityName = "Porto Alegre";
+        IEnumerable<MeteorologicalDataEntity> metDataList = new Fixture().Create<IEnumerable<MeteorologicalDataEntity>>();
         var metDataListOrdenated = metDataList
             .OrderByDescending(metData => metData.WeatherDate)
             .Take(7);
+        _repository.Setup(r => r.FindByCity(cityName)).Returns(metDataListOrdenated);
         //Act
-        var response = _service.FindMeteorologicalDataByCityName(metDataToSearchByCity.City);
+        var response = _service.FindMeteorologicalDataByCityName(cityName);
         //Assert
         Assert.Equal(metDataListOrdenated, response);
     }

@@ -21,15 +21,17 @@ public class MeteorologicalDataController: ControllerBase
     [HttpPost]
     public IActionResult CreateMeteorologicalData([FromBody] CreateMetDataDto metDataDto)
     {
+        if(!ModelState.IsValid) return BadRequest(ModelState);
         MeteorologicalDataEntity metDataEntity = _service.CreateMeteorologicalData(metDataDto);
         return CreatedAtAction(nameof(FindMeteorologicalDataByID), new { id = metDataEntity.Id },
             metDataEntity);
     }
 
     [HttpGet]
-    public IEnumerable<MeteorologicalDataEntity> GetAll([FromQuery] int skip)
+    public IActionResult GetAll([FromQuery] int skip)
     {
-        return _service.FindAllMeteorologicalData((skip));
+        var metDataList = _service.FindAllMeteorologicalData((skip));
+        return metDataList.Any() ? Ok(metDataList) : NoContent(); 
     }
 
 
@@ -51,7 +53,7 @@ public class MeteorologicalDataController: ControllerBase
     public IActionResult FindActualDayInCity(string cityName)
     {
         MeteorologicalDataEntity actualDay = _service.FindActualDay(cityName);
-        return actualDay is null ? NotFound() : Ok(actualDay);
+        return actualDay is null ? NotFound("There is no today's Meteorological Data found with this City.") : Ok(actualDay);
     }
 
 
@@ -78,8 +80,7 @@ public class MeteorologicalDataController: ControllerBase
         [FromBody] JsonPatchDocument<UpdateMetDataDto> patch)
     {
         var metDataEdited = _service.EditOnlyOneField(id, patch);
-        Console.WriteLine(patch);
-        return Ok(metDataEdited);
+        return metDataEdited is null ? NotFound("Id not found") : Ok(metDataEdited);
     }
 
     [HttpDelete("{id}")]
