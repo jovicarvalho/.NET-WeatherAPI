@@ -53,7 +53,7 @@ public class MeteorologicalDataController: ControllerBase
     public IActionResult FindActualDayInCity(string cityName)
     {
         MeteorologicalDataEntity actualDay = _service.FindActualDay(cityName);
-        return actualDay is null ? NotFound() : Ok(actualDay);
+        return actualDay is null ? NotFound("There is no today's Meteorological Data found with this City.") : Ok(actualDay);
     }
 
 
@@ -80,8 +80,7 @@ public class MeteorologicalDataController: ControllerBase
         [FromBody] JsonPatchDocument<UpdateMetDataDto> patch)
     {
         var metDataEdited = _service.EditOnlyOneField(id, patch);
-        Console.WriteLine(patch);
-        return Ok(metDataEdited);
+        return metDataEdited is null ? NotFound("Id not found") : Ok(metDataEdited);
     }
 
     [HttpDelete("{id}")]
