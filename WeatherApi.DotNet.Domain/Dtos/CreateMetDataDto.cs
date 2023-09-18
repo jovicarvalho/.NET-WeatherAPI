@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using static WeatherAPI_DOTNET.Service.MeteorologicalDataService;
 
 namespace WeatherAPI_DOTNET.Data.Dtos
 {
@@ -27,7 +26,7 @@ namespace WeatherAPI_DOTNET.Data.Dtos
 
         [Required(ErrorMessage = "O campo de humidade é obrigatório")]
         [Range(0, 100, ErrorMessage = "A humidade deve ser entre 0 e 100%")]
-        public int humidity { get; set; }
+        public int Humidity { get; set; }
 
         [Required(ErrorMessage = "O campo de precipitação é obrigatório")]
         [Range(0, 100, ErrorMessage = "A precipitação deve ser entre 0 e 100%")]
