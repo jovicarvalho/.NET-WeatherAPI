@@ -3,12 +3,13 @@ using WeatherAPI_DOTNET.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using WeatherAPI_DOTNET.Data.Dtos;
 using WeatherAPI_DOTNET.Service.Interfaces;
-
+using Microsoft.AspNetCore.Cors;
 
 namespace WeatherAPI_DOTNET.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[EnableCors("WeatherFront")]
 public class MeteorologicalDataController: ControllerBase
 {
     
