@@ -28,38 +28,45 @@ public class MeteorologicalDataController: ControllerBase
             metDataEntity);
     }
 
-    [HttpGet]
-    public IActionResult GetAll([FromQuery] int skip)
-    {
-        var metDataList = _service.FindAllMeteorologicalData((skip));
-        return metDataList.Any() ? Ok(metDataList) : NoContent(); 
+    [HttpGet("all")]
+    public IActionResult GetAllPagineted([FromQuery] int skip)
+    {   
+        var paginatedQueryofAllWeathers = _service.FindAllMeteorologicalDataPaginated(skip);
+        return (paginatedQueryofAllWeathers.totalWeathers != 0) ? Ok(paginatedQueryofAllWeathers) : NotFound("There is no MeteorologicalData registred ");
     }
 
 
     [HttpGet("{id}")]
-    public IActionResult FindMeteorologicalDataByID(Guid id)
+    public IActionResult FindMeteorologicalDataByID(Guid id)    
     {
         var metData = _service.FindMeteorologicalDataByID(id);
         return metData is null ? NotFound("Meteorological Data not Found") : Ok(metData);
     }
 
-    [HttpGet("city={cityName}")]
-    public IActionResult FindMeteorologicalDataByCity(string cityName)
+    [HttpGet]
+    public IActionResult FindMeteorologicalDataByCity([FromQuery] string city, [FromQuery] int page)
     {
-        IEnumerable<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName);
-        return metDataList.Any() ? Ok(metDataList) : NotFound("There is no Meteorological Data found with this City");
+        var metDataList = _service.FindMeteorologicalDataByCityName(city, page);
+        return (metDataList.totalWeathers != 0) ?  Ok(metDataList) : NotFound("There is no Meteorological Data found with this City");
     }
 
-    [HttpGet("actualDay/city={cityName}")]
-    public IActionResult FindActualDayInCity(string cityName)
+    [HttpGet("actualDay/")]
+    public IActionResult FindActualDayInCity([FromQuery] string cityName)
     {
         MeteorologicalDataEntity actualDay = _service.FindActualDay(cityName);
         return actualDay is null ? NotFound("There is no today's Meteorological Data found with this City.") : Ok(actualDay);
     }
 
+    [HttpGet("weekInCity/")]
+    public IActionResult FindSevenDaysInCity([FromQuery] string cityName)
+    {
+        IEnumerable<MeteorologicalDataEntity>actualDay = _service.findWeekInCity(cityName);
+        return actualDay is null ? NotFound("There is no today's Meteorological Data found with this City.") : Ok(actualDay);
+    }
 
-    [HttpGet("specificDate/city={cityName}")]
-    public IActionResult FindSpecificDateInCity(string cityName, [FromBody] DateTime date)
+    //transformar cityName em query e não um literal para não interferir na analise de performace
+    [HttpGet("specificDate/cityName")]
+    public IActionResult FindSpecificDateInCity([FromQuery] string cityName, [FromBody] DateTime date)
     {
         MeteorologicalDataEntity especificDate = _service.FindMeteoroloficalDataBySpecificDate(cityName, date);
         return especificDate is null ? NotFound() : Ok(especificDate);

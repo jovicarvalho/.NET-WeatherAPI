@@ -53,7 +53,7 @@ public class MeteorologicalDataControllerUnitTests
             new Fixture().Create<MeteorologicalDataEntity>(),
         };
 
-        _service.Setup(s => s.FindAllMeteorologicalData(skip)).Returns(meteorologicalDataList);
+        _service.Setup(s => s.FindAllMeteorologicalDataPaginated(skip)).Returns(meteorologicalDataList);
         //Act
         var response = _controller.GetAll(skip);
         //Assert
@@ -71,7 +71,7 @@ public class MeteorologicalDataControllerUnitTests
         {
         };
 
-        _service.Setup(s => s.FindAllMeteorologicalData(skip)).Returns(meteorologicalDataList);
+        _service.Setup(s => s.FindAllMeteorologicalDataPaginated(skip)).Returns(meteorologicalDataList);
         //Act
         var response = _controller.GetAll(skip);
         //Assert
@@ -85,7 +85,7 @@ public class MeteorologicalDataControllerUnitTests
         //Act
         var response = _controller.GetAll(It.IsAny<int>());
         //Assert
-        _service.Verify(s => s.FindAllMeteorologicalData(It.IsAny<int>()), Times.Once);
+        _service.Verify(s => s.FindAllMeteorologicalDataPaginated(It.IsAny<int>()), Times.Once);
     }
 
     [Fact]

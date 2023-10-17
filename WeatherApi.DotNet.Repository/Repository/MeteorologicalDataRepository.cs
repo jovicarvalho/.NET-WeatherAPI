@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using WeatherApi.DotNet.Domain.Entity;
 using WeatherAPI_DOTNET.Context;
 using WeatherAPI_DOTNET.Data.Repository.Interfaces;
 using WeatherAPI_DOTNET.Models;
@@ -21,9 +22,62 @@ namespace WeatherAPI_DOTNET.Data.Repository
             _context.SaveChanges();
         }
 
-        public IEnumerable<MeteorologicalDataEntity> GetAll(int skip)
+        public async Task<PaginatedQueryWeather> GetPaginatedDataOfAllWeathers(int skip)
         {
-            return _context.MeteorologicalData.Skip(skip).Take(10);
+            var pageSize = 10;
+            var query = _context.MeteorologicalData.OrderByDescending(metData => metData.WeatherDate);
+
+            int totalCountWeathers = await query.CountAsync();
+            var weathers = await query.Skip(skip).Take(pageSize).ToListAsync();
+
+
+            int totalPages = (int)Math.Ceiling((double)totalCountWeathers / pageSize);
+
+            var pagedData = new PaginatedQueryWeather
+            {
+                pageSize = pageSize,
+                totalPages = totalPages,
+                totalWeathers = totalCountWeathers,
+                weathers = weathers,
+                offset = 0,
+                pageNumber = skip
+            };
+
+            return pagedData;
+        }
+
+        //public async Task<PaginatedQueryWeather> GetPaginatedDataOfAllWeathers(int skip)
+        //{
+        //    var pageSize = 10;
+        //    var query = _context.MeteorologicalData.OrderByDescending(metData => metData.WeatherDate);
+
+        //    var totalWeathers = query.CountAsync();
+        //    var data = query.Skip(skip).Take(pageSize).ToListAsync();
+
+        //    await Task.WhenAll(totalWeathers, data);
+
+        //    int totalPages = (int)Math.Ceiling((double)totalWeathers.Result / pageSize);
+
+        //    var pagedData = new PaginatedQueryWeather
+        //    {
+        //        pageSize = pageSize,
+        //        totalPages = totalPages,
+        //        totalWeathers = totalWeathers.Result,
+        //        weathers = data.Result,
+        //        offset = 0,
+        //        pageNumber = skip
+        //    };
+
+        //    return pagedData;
+        //}
+
+        public IEnumerable<MeteorologicalDataEntity> FindWeekInCity(string cityName) {
+            var weekInCity = _context.MeteorologicalData
+                .Where(metData=> metData.City == cityName)
+                .OrderByDescending(metData => metData.WeatherDate)
+                .Take(7)
+                ;
+            return weekInCity;
         }
 
         public MeteorologicalDataEntity? FindByID(Guid id)
@@ -32,16 +86,32 @@ namespace WeatherAPI_DOTNET.Data.Repository
             return metData;
         }
 
-        public IEnumerable<MeteorologicalDataEntity> FindByCity(string cityName)
+        public async Task<PaginatedQueryWeather> GetPaginatedDataByCity(string cityName, int skip)
         {
-            IEnumerable<MeteorologicalDataEntity> metData = _context.MeteorologicalData
+            var pageSize = 10;
+            var query = _context.MeteorologicalData
                 .Where(metDataList => metDataList.City == cityName)
-                .OrderByDescending(metData => metData.WeatherDate)
-                .Take(7)
-                .ToList();
-            ;
-            return metData;
+                .OrderByDescending(metData => metData.WeatherDate);
+
+            var totalWeathersByCity = await query.CountAsync();
+            var data = await query.Skip(skip).Take(pageSize).ToListAsync();
+
+            int totalPages = (int)Math.Ceiling((double)totalWeathersByCity / pageSize);
+
+            var pagedData = new PaginatedQueryWeather
+            {
+                pageSize = pageSize,
+                totalPages = totalPages,
+                totalWeathers = totalWeathersByCity,
+                weathers = data,
+                offset = 0,
+                pageNumber = (skip / 10)
+            };
+
+            return pagedData;
         }
+
+
         public MeteorologicalDataEntity FindBySpecificDateAndCity(string cityName, DateTime date)
         {
             var metData = _context.MeteorologicalData
