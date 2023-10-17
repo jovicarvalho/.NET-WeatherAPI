@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Reflection.Metadata;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using WeatherApi.DotNet.Domain.Entity;
 using WeatherAPI_DOTNET.Data.Dtos;
 using WeatherAPI_DOTNET.Data.Repository;
 using WeatherAPI_DOTNET.Data.Repository.Interfaces;
@@ -24,9 +25,11 @@ public class MeteorologicalDataService : IMeteorologicalDataService
         _mapper = mapper;
     }
 
-    public IEnumerable<MeteorologicalDataEntity> FindAllMeteorologicalData(int skip)
+    public PaginatedQueryWeather FindAllMeteorologicalDataPaginated(int page)
     {
-        return _repository.GetAll(skip * 10);
+        int pageSize = 10;
+        return _repository.GetPaginatedDataOfAllWeathers(page * pageSize).Result;
+
     }
 
     public MeteorologicalDataEntity FindMeteorologicalDataByID(Guid id)
@@ -42,6 +45,11 @@ public class MeteorologicalDataService : IMeteorologicalDataService
         return metData;
     }
 
+    public IEnumerable<MeteorologicalDataEntity> findWeekInCity(string cityName)
+    {
+        IEnumerable<MeteorologicalDataEntity> weekInCity = _repository.FindWeekInCity(cityName);
+        return weekInCity;
+    } 
     public MeteorologicalDataEntity FindActualDay(string cityname)
     {
         var actualDay = DateTime.Now.Date;
@@ -49,10 +57,11 @@ public class MeteorologicalDataService : IMeteorologicalDataService
         return metDataWithActualDay;
     }
 
-    public IEnumerable<MeteorologicalDataEntity> FindMeteorologicalDataByCityName(string cityName)
+    public PaginatedQueryWeather FindMeteorologicalDataByCityName(string cityName, int page)
     {
-        IEnumerable<MeteorologicalDataEntity> metDataList = _repository.FindByCity(cityName).ToList();
-        return metDataList;
+        int pageSize = 10;
+        return _repository.GetPaginatedDataByCity(cityName, page * pageSize).Result;
+
     }
 
     public MeteorologicalDataEntity CreateMeteorologicalData(CreateMetDataDto metDataDto)
