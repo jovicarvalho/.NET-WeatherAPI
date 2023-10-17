@@ -211,10 +211,10 @@ public class MeteorologicalDataServiceTests
     {
         //Arrange
         IEnumerable<MeteorologicalDataEntity> metDataList = new Fixture().Create<IEnumerable<MeteorologicalDataEntity>>();
-        _repository.Setup(r => r.GetAll(It.IsAny<int>())).Returns(metDataList);
+        _repository.Setup(r => r.GetPaginatedDataOfAllWeathers(It.IsAny<int>())).Returns(metDataList);
         var skip = 0;
         //Act
-        var response = _service.FindAllMeteorologicalData(skip);
+        var response = _service.FindAllMeteorologicalDataPaginated(skip);
         //Assert
         Assert.Equal(metDataList, response);
     }
