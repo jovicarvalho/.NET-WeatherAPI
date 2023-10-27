@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WeatherAPI_DOTNET.Models;
 
-namespace WeatherApi.DotNet.Domain.Entity
+namespace WeatherApi.DotNet.Domain.Dtos
 {
     public class PaginatedQueryWeather
     {
@@ -15,7 +15,7 @@ namespace WeatherApi.DotNet.Domain.Entity
 
         public int pageSize { get; set; }
 
-        public int pageNumber { get; set;}
+        public int pageNumber { get; set; }
 
         public int totalWeathers { get; set; }
 

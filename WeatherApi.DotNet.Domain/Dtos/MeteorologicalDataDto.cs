@@ -3,8 +3,10 @@ using System.Text.Json.Serialization;
 
 namespace WeatherAPI_DOTNET.Data.Dtos
 {
-    public class CreateMetDataDto
+    public class MeteorologicalDataDto
     {
+#pragma warning disable CS8618
+
         [Required(ErrorMessage = "Informar a cidade é obrigatório.")]
         [StringLength(35, ErrorMessage = "O nome da cidade não deve exceder 50 caracteres")]
         public string City { get; set; }
@@ -35,5 +37,7 @@ namespace WeatherAPI_DOTNET.Data.Dtos
         [Required(ErrorMessage = "O campo de humidade é obrigatório")]
         [Range(0, 200, ErrorMessage = "A velocidade do vento deve ser maior que 0 e menor que 200 km/h")]
         public int WindSpeed { get; set; }
+
+#pragma warning restore CS8618 
     }
 }
