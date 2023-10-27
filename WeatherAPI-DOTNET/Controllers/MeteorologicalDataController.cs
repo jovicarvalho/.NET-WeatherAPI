@@ -13,81 +13,87 @@ namespace WeatherAPI_DOTNET.Controllers;
 public class MeteorologicalDataController: ControllerBase
 {
     
-    private IMeteorologicalDataService _service;
+    private readonly IMeteorologicalDataService _service;
     public MeteorologicalDataController(IMeteorologicalDataService service)
     {
         _service = service;
     }
 
     [HttpPost]
-    public IActionResult CreateMeteorologicalData([FromBody] CreateMetDataDto metDataDto)
+    public async Task<IActionResult> CreateMeteorologicalData([FromBody] MeteorologicalDataDto metDataDto)
     {
-        if(!ModelState.IsValid) return BadRequest(ModelState);
-        MeteorologicalDataEntity metDataEntity = _service.CreateMeteorologicalData(metDataDto);
+        var metDataEntity = await _service.CreateMeteorologicalData(metDataDto);
         return CreatedAtAction(nameof(FindMeteorologicalDataByID), new { id = metDataEntity.Id },
             metDataEntity);
     }
 
-    [HttpGet]
-    public IActionResult GetAll([FromQuery] int skip)
-    {
-        var metDataList = _service.FindAllMeteorologicalData((skip));
-        return metDataList.Any() ? Ok(metDataList) : NoContent(); 
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllPagineted([FromQuery] int skip)
+    {   
+        var paginatedQueryofAllWeathers = await _service.FindAllMeteorologicalDataPaginated(skip);
+        return Ok(paginatedQueryofAllWeathers);
     }
 
 
     [HttpGet("{id}")]
-    public IActionResult FindMeteorologicalDataByID(Guid id)
+    public async Task<IActionResult> FindMeteorologicalDataByID(Guid id)    
     {
-        var metData = _service.FindMeteorologicalDataByID(id);
-        return metData is null ? NotFound("Meteorological Data not Found") : Ok(metData);
+        var metData = await _service.FindMeteorologicalDataByID(id);
+        return Ok(metData);
     }
 
-    [HttpGet("city={cityName}")]
-    public IActionResult FindMeteorologicalDataByCity(string cityName)
+    [HttpGet]
+    public async Task<IActionResult> FindMeteorologicalDataByCity([FromQuery] string city, [FromQuery] int page)
     {
-        IEnumerable<MeteorologicalDataEntity> metDataList = _service.FindMeteorologicalDataByCityName(cityName);
-        return metDataList.Any() ? Ok(metDataList) : NotFound("There is no Meteorological Data found with this City");
+        var metDataList = await _service.FindMeteorologicalDataByCityName(city, page);
+        return Ok(metDataList);
     }
 
-    [HttpGet("actualDay/city={cityName}")]
-    public IActionResult FindActualDayInCity(string cityName)
+    [HttpGet("actualDay/")]
+    public async Task<IActionResult> FindActualDayInCity([FromQuery] string cityName)
     {
-        MeteorologicalDataEntity actualDay = _service.FindActualDay(cityName);
-        return actualDay is null ? NotFound("There is no today's Meteorological Data found with this City.") : Ok(actualDay);
+        MeteorologicalDataEntity actualDay = await _service.FindActualDay(cityName);
+        return Ok(actualDay);
     }
 
-
-    [HttpGet("specificDate/city={cityName}")]
-    public IActionResult FindSpecificDateInCity(string cityName, [FromBody] DateTime date)
+    [HttpGet("weekInCity/")]
+    public async Task<IActionResult> FindSevenDaysInCity([FromQuery] string cityName)
     {
-        MeteorologicalDataEntity especificDate = _service.FindMeteoroloficalDataBySpecificDate(cityName, date);
-        return especificDate is null ? NotFound() : Ok(especificDate);
+        var weekinCity = await _service.FindWeekInCity(cityName);
+        return Ok(weekinCity);
+    }
+
+    [HttpGet("specificDate/cityName")]
+    public async Task<IActionResult> FindSpecificDateInCity([FromQuery] string cityName, [FromBody] DateTime date)
+    {
+        MeteorologicalDataEntity specificDate = await _service.FindMeteoroloficalDataBySpecificDate(cityName, date);
+        return Ok(specificDate);
     }
 
     [HttpPut("{id}")]
-    public IActionResult UpdateMeteorologicalDataById(
+    public async Task<IActionResult> UpdateMeteorologicalDataById(
         Guid id,
-        [FromBody] UpdateMetDataDto metDataDto)
+        [FromBody] MeteorologicalDataDto metDataDto)
     {
-        MeteorologicalDataEntity metDataEdited = _service.EditMeteorologicalData(id, metDataDto);
-        return metDataEdited is null ? NotFound("Id not found") : Ok(metDataEdited);
+        MeteorologicalDataEntity metDataEdited = await _service.EditMeteorologicalData(id, metDataDto);
+        return Ok(metDataEdited);
     }
 
 
     [HttpPatch("{id}")]
-    public IActionResult ParcialEditMeteorologicalDataByID(
+    public async Task<IActionResult> ParcialEditMeteorologicalDataByID(
         Guid id,
-        [FromBody] JsonPatchDocument<UpdateMetDataDto> patch)
+        [FromBody] JsonPatchDocument<MeteorologicalDataDto> patch)
     {
-        var metDataEdited = _service.EditOnlyOneField(id, patch);
-        return metDataEdited is null ? NotFound("Id not found") : Ok(metDataEdited);
+        var metDataEdited = await _service.EditOnlyOneField(id, patch);
+        return Ok(metDataEdited);
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteMeteorologicalDataByID(Guid id)
+    public async Task<IActionResult> DeleteMeteorologicalDataByID(Guid id)
     {
-        return _service.DeleteMeteorologicalData(id) is null ? NotFound("Id not found.") : Ok("Deleted with Sucess!");
+        await _service.DeleteMeteorologicalData(id);
+        return Ok("Deleted with Sucess!");
     }
 
 }

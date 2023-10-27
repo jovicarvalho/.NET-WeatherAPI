@@ -1,20 +1,22 @@
 ﻿using Microsoft.AspNetCore.JsonPatch;
 using WeatherAPI_DOTNET.Models;
 using WeatherAPI_DOTNET.Data.Dtos;
+using WeatherApi.DotNet.Domain.Dtos;
 
 namespace WeatherAPI_DOTNET.Service.Interfaces
 {
     public interface IMeteorologicalDataService
     {
-        MeteorologicalDataEntity FindMeteorologicalDataByID(Guid id);
-        IEnumerable<MeteorologicalDataEntity> FindMeteorologicalDataByCityName(string cityName);
-        MeteorologicalDataEntity FindMeteoroloficalDataBySpecificDate(string cityName, DateTime dateOnly);
-        MeteorologicalDataEntity FindActualDay(string cityName);
-        MeteorologicalDataEntity CreateMeteorologicalData(CreateMetDataDto metDataDto);
-        IEnumerable<MeteorologicalDataEntity> FindAllMeteorologicalData(int skip);
-        MeteorologicalDataEntity EditMeteorologicalData(Guid id, UpdateMetDataDto metDataDto);
-        MeteorologicalDataEntity EditOnlyOneField(Guid id, JsonPatchDocument<UpdateMetDataDto> patch);
-        MeteorologicalDataEntity DeleteMeteorologicalData(Guid id);
+        Task<MeteorologicalDataEntity> FindMeteorologicalDataByID(Guid id);
+        Task<PaginatedQueryWeather> FindMeteorologicalDataByCityName(string cityName, int skip);
+        Task<MeteorologicalDataEntity> FindMeteoroloficalDataBySpecificDate(string cityName, DateTime date);
+        Task<IEnumerable<MeteorologicalDataEntity>> FindWeekInCity(string cityName);
+        Task<MeteorologicalDataEntity> FindActualDay(string cityName);
+        Task<MeteorologicalDataEntity> CreateMeteorologicalData(MeteorologicalDataDto metDataDto);
+        Task<PaginatedQueryWeather> FindAllMeteorologicalDataPaginated(int skip);
+        Task<MeteorologicalDataEntity> EditMeteorologicalData(Guid id, MeteorologicalDataDto metDataDto);
+        Task<MeteorologicalDataEntity> EditOnlyOneField(Guid id, JsonPatchDocument<MeteorologicalDataDto> patch);
+        Task<MeteorologicalDataEntity> DeleteMeteorologicalData(Guid id);
 
     }
 }

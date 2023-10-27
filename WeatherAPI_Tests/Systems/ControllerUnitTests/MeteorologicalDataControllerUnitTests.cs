@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 using Moq;
 using WeatherAPI_DOTNET.Controllers;
 using WeatherAPI_DOTNET.Data.Repository;
@@ -17,203 +16,129 @@ using WeatherAPI_DOTNET.Data.Repository.Interfaces;
 using Microsoft.AspNetCore.Http;
 using WeatherAPI_DOTNET.Data.Dtos;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using WeatherApi.DotNet.Tests.Helpers;
+
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.JsonPatch;
+using WeatherApi.DotNet.Domain.Dtos;
 
 namespace WeatherApi.DotNet.Tests.Systems.ControllerUnitTests;
 
 
 public class MeteorologicalDataControllerUnitTests
 {
-    private Mock<IMeteorologicalDataRepository> _repository;
-    private Mock<IMeteorologicalDataService> _service;
-    private Mock<IMapper> _mapper;
+    private readonly Mock<IMeteorologicalDataService> _service;
     private readonly MeteorologicalDataController _controller;
-    private readonly ControllerTestsHelper _helper;
 
     public MeteorologicalDataControllerUnitTests()
     {
-        _repository = new Mock<IMeteorologicalDataRepository>();
         _service = new Mock<IMeteorologicalDataService>();
-        _mapper = new Mock<IMapper>();
         _controller = new MeteorologicalDataController(_service.Object);
-        _helper = new ControllerTestsHelper();
     }
 
     [Fact]
-    public void GetAllTestSucessefulOkResponse()
+    public async Task GetAllTestSucessefulOkResponse()
     {
         //Arrange
         var skip = 0;
-        var meteorologicalDataList = new List<MeteorologicalDataEntity>
-        {
-            new Fixture().Create<MeteorologicalDataEntity>() ,
-            new Fixture().Create<MeteorologicalDataEntity>(),
-        };
+        var paginatedWeathers = new Fixture().Create<PaginatedQueryWeather>();
 
-        _service.Setup(s => s.FindAllMeteorologicalData(skip)).Returns(meteorologicalDataList);
+        _service.Setup(s => s.FindAllMeteorologicalDataPaginated(skip)).ReturnsAsync(paginatedWeathers);
         //Act
-        var response = _controller.GetAll(skip);
+        var response = await _controller.GetAllPagineted(skip);
         //Assert
         var okResult = Assert.IsType<OkObjectResult>(response);
-        var returnedData = Assert.IsAssignableFrom<IEnumerable<MeteorologicalDataEntity>>(okResult.Value);
-        Assert.Equal(meteorologicalDataList, returnedData);
+        var returnedData = Assert.IsAssignableFrom<PaginatedQueryWeather>(okResult.Value);
+        Assert.Equal(paginatedWeathers, returnedData);
     }
 
     [Fact]
-    public async Task GetAllTestFailedNoContentResponse()
-    {
-        //Arrange
-        var skip = 0;
-        var meteorologicalDataList = new List<MeteorologicalDataEntity>
-        {
-        };
-
-        _service.Setup(s => s.FindAllMeteorologicalData(skip)).Returns(meteorologicalDataList);
-        //Act
-        var response = _controller.GetAll(skip);
-        //Assert
-        var noContentResult = Assert.IsType<NoContentResult>(response);
-        Assert.Equal(noContentResult, response);
-    }
-
-    [Fact]
-    public void GetAllVerifyIfCall()
+    public async Task GetAllPaginetedVerifyCommunicationWithService()
     {
         //Act
-        var response = _controller.GetAll(It.IsAny<int>());
+        var response = await _controller.GetAllPagineted(It.IsAny<int>());
         //Assert
-        _service.Verify(s => s.FindAllMeteorologicalData(It.IsAny<int>()), Times.Once);
+        _service.Verify(s => s.FindAllMeteorologicalDataPaginated(It.IsAny<int>()), Times.Once);
     }
 
     [Fact]
-    public void GetByID()
+    public async Task GetByIDWithSucess()
     {
         //Arrange
         var guid = Guid.NewGuid();
-        var mockedMetData = new Fixture().Create<MeteorologicalDataEntity>();
-        _service.Setup(s => s.FindMeteorologicalDataByID(guid)).Returns(mockedMetData);
+        var mockedWeather = new Fixture().Create<MeteorologicalDataEntity>();
+        _service.Setup(s => s.FindMeteorologicalDataByID(guid)).ReturnsAsync(mockedWeather);
         //Act
-        var response = _controller.FindMeteorologicalDataByID(guid);
+        var response = await _controller.FindMeteorologicalDataByID(guid);
         //Assert
         var okResult = Assert.IsType<OkObjectResult>(response);
         var returnedData = Assert.IsAssignableFrom<MeteorologicalDataEntity>(okResult.Value);
-        Assert.Equal(mockedMetData, returnedData);
+        Assert.Equal(mockedWeather, returnedData);
     }
 
     [Fact]
-    public void GetByIdInexistentIDFaield()
+    public async Task PostNewMeteorologicalData()
     {
-        var wrongGuid = Guid.NewGuid();
-        var response = _controller.FindMeteorologicalDataByID(wrongGuid);
-        var NotFoundObjectResult = Assert.IsType<NotFoundObjectResult>(response);
-        Assert.Equal("Meteorological Data not Found", NotFoundObjectResult.Value);
-    }
-
-    [Fact]
-    public void PostNewMeteorologicalData()
-    {
-        var mockedCreateDTO = new Fixture().Create<CreateMetDataDto>();
+        var mockedCreateDTO = new Fixture().Create<MeteorologicalDataDto>();
         var mockedMetData = new Fixture().Create<MeteorologicalDataEntity>();
-        _service.Setup(s => s.CreateMeteorologicalData(mockedCreateDTO)).Returns(mockedMetData);
+        _service.Setup(s => s.CreateMeteorologicalData(mockedCreateDTO)).ReturnsAsync(mockedMetData);
 
-        var response = _controller.CreateMeteorologicalData(mockedCreateDTO);
+        var response = await _controller.CreateMeteorologicalData(mockedCreateDTO);
 
         var createdResult = Assert.IsType<CreatedAtActionResult>(response);
         var returnedData = Assert.IsAssignableFrom<MeteorologicalDataEntity>(createdResult.Value);
         Assert.Equal(mockedMetData, returnedData);
-        _service.Verify(s => s.CreateMeteorologicalData(It.IsAny<CreateMetDataDto>()), Times.Once());
+        _service.Verify(s => s.CreateMeteorologicalData(It.IsAny<MeteorologicalDataDto>()), Times.Once());
     }
 
 
     [Fact]
-    public void PostWithInvalidDTOFailed()
-    {
-        //Esse é a solução mais fácil, porém não a mais recomendável
-        //_controller.ModelState.AddModelError("fakeError", "InvalidModel");
-        //var response = _controller.CreateMeteorologicalData(new());
-        //Assert.IsType<BadRequestObjectResult>(response);
-        var wrongDTO = new CreateMetDataDto
-        {
-            City = "Roma",
-            WeatherDate = new DateTime(2023, 2, 3),
-            MorningWeather = "Sunny",
-            NightWeather = "Sunny",
-            MaxTemperature = 70,
-            MinTemperature = 5,
-            Humidity = 20,
-            WindSpeed = 1000,
-            Precipitation = 20
-        };
-
-        _helper.MockModelState(wrongDTO, _controller);
-        var response = _controller.CreateMeteorologicalData(wrongDTO);
-        Assert.IsType<BadRequestObjectResult>(response);
-    }
-
-    [Fact]
-    public void DeleteByIdSucessWithRightID()
+    public async Task DeleteByIdSucessWithRightID()
     {
         //Arrange
         var guid = new Guid();
         var mockedMetData = new Fixture().Create<MeteorologicalDataEntity>();
-        _service.Setup(s => s.DeleteMeteorologicalData(guid)).Returns(mockedMetData);
+        _service.Setup(s => s.DeleteMeteorologicalData(guid)).ReturnsAsync(mockedMetData);
         //act
-        var response = _controller.DeleteMeteorologicalDataByID(guid);
+        var response = await _controller.DeleteMeteorologicalDataByID(guid);
         //assert
         var okResult = Assert.IsType<OkObjectResult>(response);
         Assert.Equal("Deleted with Sucess!", okResult.Value);
     }
 
     [Fact]
-    public void DeleteByIdFailedWithWrongID()
+    public async Task DeleteVerifyComunicationWithService()
     {
-        var response = _controller.DeleteMeteorologicalDataByID(It.IsAny<Guid>());
-        var notFound = Assert.IsType<NotFoundObjectResult>(response);
-        Assert.Equal("Id not found.", notFound.Value);
-    }
-    [Fact]
-    public void DeleteVerifyComunicationWithService()
-    {
-        var response = _controller.DeleteMeteorologicalDataByID(It.IsAny<Guid>());
+        var response = await _controller.DeleteMeteorologicalDataByID(It.IsAny<Guid>());
         _service.Verify(s => s.DeleteMeteorologicalData(It.IsAny<Guid>()), Times.Once);
     }
 
     [Fact]
-    public void GetByCityWithExistingCitySucess()
+    public async Task GetByCityWithExistingCitySucess()
     {
         //Arrange
         var cityName = "Porto Alegre";
-        var metDataList = new Fixture().Create<IEnumerable<MeteorologicalDataEntity>>();
-        _service.Setup(s => s.FindMeteorologicalDataByCityName(cityName)).Returns(metDataList);
+        int page = 0;
+        var paginetedWeathers = new Fixture().Create<PaginatedQueryWeather>();
+        _service.Setup(s => s.FindMeteorologicalDataByCityName(cityName, page)).ReturnsAsync(paginetedWeathers);
         //Act
-        var response = _controller.FindMeteorologicalDataByCity(cityName);
+        var response = await _controller.FindMeteorologicalDataByCity(cityName, page);
         //Assert
         var okResult = Assert.IsAssignableFrom<OkObjectResult>(response);
-        var returnedData = Assert.IsAssignableFrom<IEnumerable<MeteorologicalDataEntity>>(okResult.Value);
-        Assert.Equal(metDataList, returnedData);
+        var returnedData = Assert.IsAssignableFrom<PaginatedQueryWeather> (okResult.Value);
+        Assert.Equal(paginetedWeathers, returnedData);
     }
 
     [Fact]
-    public void GetByCityVerifyComunication()
+    public async Task GetByCityVerifyComunication()
     {
-        _controller.FindMeteorologicalDataByCity(It.IsAny<String>());
-        _service.Verify(s => s.FindMeteorologicalDataByCityName(It.IsAny<String>()), Times.Once);
-    }
-    [Fact]
-    public void GetByCityWithWrongCityFailed()
-    {
-        var cityName = "Porto Alegre";
-        var response = _controller.FindMeteorologicalDataByCity(cityName);
-        var notFoundResult = Assert.IsAssignableFrom<NotFoundObjectResult>(response);
-        var returnedData = Assert.IsAssignableFrom<String>(notFoundResult.Value);
-        Assert.Equal("There is no Meteorological Data found with this City", returnedData);
+        await _controller.FindMeteorologicalDataByCity(It.IsAny<String>(),It.IsAny<int>());
+        _service.Verify(s => s.FindMeteorologicalDataByCityName(It.IsAny<String>(), It.IsAny<int>()), Times.Once);
     }
 
+
     [Fact]
-    public void GetByActualDayWithSucess()
+    public async Task GetByActualDayWithSucess()
     {
         var actualDay = DateTime.Now.Date;
         var metData = new MeteorologicalDataEntity
@@ -229,9 +154,9 @@ public class MeteorologicalDataControllerUnitTests
             WindSpeed = 20,
             Precipitation = 20
         };
-        _service.Setup(s => s.FindActualDay(metData.City)).Returns(metData);
+        _service.Setup(s => s.FindActualDay(metData.City)).ReturnsAsync(metData);
 
-        var response = _controller.FindActualDayInCity(metData.City);
+        var response = await _controller.FindActualDayInCity(metData.City);
 
         var okResult = Assert.IsType<OkObjectResult>(response);
         var returnedData = Assert.IsAssignableFrom<MeteorologicalDataEntity>(okResult.Value);
@@ -239,71 +164,46 @@ public class MeteorologicalDataControllerUnitTests
     }
 
     [Fact]
-    public void GetByActualDayVerifyComunication()
+    public async Task GetByActualDayVerifyComunication()
     {
-        _controller.FindActualDayInCity(It.IsAny<String>());
+        await _controller.FindActualDayInCity(It.IsAny<String>());
         _service.Verify(s => s.FindActualDay(It.IsAny<String>()), Times.Once);
     }
 
-    [Fact]
-    public void GetByActualDayFailed()
-    {
-        var cityName = "Porto Alegre";
-        var response = _controller.FindActualDayInCity(cityName);
-        var notFound = Assert.IsAssignableFrom<NotFoundObjectResult>(response);
-        var returnedData = Assert.IsAssignableFrom<String>(notFound.Value);
-        Assert.Equal("There is no today's Meteorological Data found with this City.", returnedData);
-    }
 
     [Fact]
-    public void EditByIdWithSucess()
+    public async Task EditByIdWithSucess()
     {
         var guid = new Guid();
-        var editionDto = new Fixture().Create<UpdateMetDataDto>();
+        var editionDto = new Fixture().Create<MeteorologicalDataDto>();
         var metDataReturned = new Fixture().Create<MeteorologicalDataEntity>();
-        _service.Setup(s => s.EditMeteorologicalData(guid, editionDto)).Returns(metDataReturned);
-        var response = _controller.UpdateMeteorologicalDataById(guid, editionDto);
+        _service.Setup(s => s.EditMeteorologicalData(guid, editionDto)).ReturnsAsync(metDataReturned);
+        var response = await _controller.UpdateMeteorologicalDataById(guid, editionDto);
         var okResult = Assert.IsType<OkObjectResult>(response);
         var returnedData = Assert.IsAssignableFrom<MeteorologicalDataEntity>(okResult.Value);
         Assert.Equal(metDataReturned, returnedData);
     }
 
 
+
     [Fact]
-    public void EditByIdFailedWrongID()
-    {
-        var guid = new Guid();
-        var editionDto = new Fixture().Create<UpdateMetDataDto>();
-        var response = _controller.UpdateMeteorologicalDataById(guid, editionDto);
-        var notFound = Assert.IsType<NotFoundObjectResult>(response);
-        var ReturnedData = Assert.IsAssignableFrom<String>(notFound.Value);
-        Assert.Equal("Id not found", ReturnedData);
-    }
-    [Fact]
-    public void GetSpecificDateInCitySucess()
+    public async Task GetSpecificDateInCitySucess()
     {
         var metData = new Fixture().Create<MeteorologicalDataEntity>();
-        _service.Setup(s => s.FindMeteoroloficalDataBySpecificDate(metData.City, metData.WeatherDate)).Returns(metData);
-        var response = _controller.FindSpecificDateInCity(metData.City, metData.WeatherDate);
+        _service.Setup(s => s.FindMeteoroloficalDataBySpecificDate(metData.City, metData.WeatherDate)).ReturnsAsync(metData);
+        var response = await _controller.FindSpecificDateInCity(metData.City, metData.WeatherDate);
         var okResult = Assert.IsType<OkObjectResult>(response);
         var returnedData = Assert.IsType<MeteorologicalDataEntity>(okResult.Value);
         Assert.Equal(metData, returnedData);
     }
 
-    [Fact]
-    public void GetSpecificDateInCityFailed()
-    {
-        var metData = new Fixture().Create<MeteorologicalDataEntity>();
-        var response = _controller.FindSpecificDateInCity(metData.City, metData.WeatherDate);
-        var notFound = Assert.IsType<NotFoundResult>(response);
-    }
 
     [Fact]
-    public void EditEspecificFieldByIDSucess()
+    public async Task EditEspecificFieldByIDSucess()
     {
         var guid = new Guid();
-        var jsonPatchDocument = new JsonPatchDocument<UpdateMetDataDto>();
-        jsonPatchDocument.Operations.Add(new Operation<UpdateMetDataDto>("replace", "/City", null, "Jerusalem"));
+        var jsonPatchDocument = new JsonPatchDocument<MeteorologicalDataDto>();
+        jsonPatchDocument.Operations.Add(new Operation<MeteorologicalDataDto>("replace", "/City", null, "Jerusalem"));
         var metDataToEdit = new Fixture().Create<MeteorologicalDataEntity>();
         var metDataAlreadyEdited = new MeteorologicalDataEntity
         {
@@ -318,24 +218,13 @@ public class MeteorologicalDataControllerUnitTests
             Precipitation = metDataToEdit.Precipitation
 
         };
-        _service.Setup(s => s.EditOnlyOneField(guid, jsonPatchDocument)).Returns(metDataAlreadyEdited);
-        var response = _controller.ParcialEditMeteorologicalDataByID(guid, jsonPatchDocument);
+        _service.Setup(s => s.EditOnlyOneField(guid, jsonPatchDocument)).ReturnsAsync(metDataAlreadyEdited);
+        var response = await _controller.ParcialEditMeteorologicalDataByID(guid, jsonPatchDocument);
         var okResult = Assert.IsType<OkObjectResult>(response);
         var returnedData = Assert.IsAssignableFrom<MeteorologicalDataEntity>(okResult.Value);
         Assert.Equal(metDataAlreadyEdited, returnedData);
 
     }
-    [Fact]
-    public void EditEspecificFieldByIDFailedWrongID()
-    {
-        var guid = Guid.NewGuid();
-        var jsonPatchDocument = new JsonPatchDocument<UpdateMetDataDto>();
-        jsonPatchDocument.Operations.Add(new Operation<UpdateMetDataDto>("replace", "/City", null, "Jerusalem"));
-        var response = _controller.ParcialEditMeteorologicalDataByID(guid, jsonPatchDocument);
-        var notFound = Assert.IsType<NotFoundObjectResult>(response);
-        var ReturnedData = Assert.IsAssignableFrom<String>(notFound.Value);
-        Assert.Equal("Id not found", ReturnedData);
-    }
 
-   
+
 }

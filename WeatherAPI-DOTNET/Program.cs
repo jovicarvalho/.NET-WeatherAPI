@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using WeatherAPI_DOTNET.Context;
 using WeatherAPI_DOTNET.Data.Repository;
 using WeatherAPI_DOTNET.Data.Repository.Interfaces;
+using WeatherAPI_DOTNET.Middlewares;
 using WeatherAPI_DOTNET.Service;
 using WeatherAPI_DOTNET.Service.Interfaces;
 
@@ -20,17 +21,18 @@ builder.Services.AddScoped<IMeteorologicalDataRepository,MeteorologicalDataRepos
 builder.Services.AddScoped<IMeteorologicalDataService, MeteorologicalDataService>();
 
 builder.Services.AddControllers().AddNewtonsoftJson();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetco re/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("WeatherFront",
         builder => builder
-            .WithOrigins("http://localhost:3000")
+            .WithOrigins("http://localhost:3000", "http://localhost:4200")
             .AllowAnyMethod()
             .AllowAnyHeader());
 });
+
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -39,12 +41,6 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Title = "DB Camp - WeatherAPI by Dante",
         Description = "An ASP.NET Core Web API for manitoring the weather forecast",
-        TermsOfService = new Uri("https://example.com/terms"),
-        Contact = new OpenApiContact
-        {
-            Name = "Developer GitHub",
-            Url = new Uri("https://github.com/jovicarvalho")
-        }
     });
 });
 
@@ -59,10 +55,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("WeatherFront");
 
+app.UseExceptionHandlingMiddleware();
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers();   
 
 app.Run();
+
