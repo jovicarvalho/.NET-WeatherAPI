@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using WeatherApi.DotNet.Domain.Entity;
+using System.Runtime.CompilerServices;
+using WeatherApi.DotNet.Domain.Dtos;
 using WeatherAPI_DOTNET.Context;
 using WeatherAPI_DOTNET.Data.Repository.Interfaces;
 using WeatherAPI_DOTNET.Models;
@@ -10,19 +11,19 @@ namespace WeatherAPI_DOTNET.Data.Repository
 {
     public class MeteorologicalDataRepository : IMeteorologicalDataRepository
     {
-        private MeteorologicalDataContext _context;
+        private readonly MeteorologicalDataContext _context;
 
         public MeteorologicalDataRepository(MeteorologicalDataContext context)
         {
             _context = context;
         }
-        public void Add(MeteorologicalDataEntity metData)
+        public async Task Add(MeteorologicalDataEntity metData)
         {
-            _context.MeteorologicalData.Add(metData);
-            _context.SaveChanges();
+            await _context.MeteorologicalData.AddAsync(metData);
+            await _context.SaveChangesAsync();
         }
 
-        public async Task<PaginatedQueryWeather> GetPaginatedDataOfAllWeathers(int skip)
+        public async Task<PaginatedQueryWeather?> GetPaginatedDataOfAllWeathers(int skip)
         {
             var pageSize = 10;
             var query = _context.MeteorologicalData.OrderByDescending(metData => metData.WeatherDate);
@@ -46,47 +47,24 @@ namespace WeatherAPI_DOTNET.Data.Repository
             return pagedData;
         }
 
-        //public async Task<PaginatedQueryWeather> GetPaginatedDataOfAllWeathers(int skip)
-        //{
-        //    var pageSize = 10;
-        //    var query = _context.MeteorologicalData.OrderByDescending(metData => metData.WeatherDate);
 
-        //    var totalWeathers = query.CountAsync();
-        //    var data = query.Skip(skip).Take(pageSize).ToListAsync();
-
-        //    await Task.WhenAll(totalWeathers, data);
-
-        //    int totalPages = (int)Math.Ceiling((double)totalWeathers.Result / pageSize);
-
-        //    var pagedData = new PaginatedQueryWeather
-        //    {
-        //        pageSize = pageSize,
-        //        totalPages = totalPages,
-        //        totalWeathers = totalWeathers.Result,
-        //        weathers = data.Result,
-        //        offset = 0,
-        //        pageNumber = skip
-        //    };
-
-        //    return pagedData;
-        //}
-
-        public IEnumerable<MeteorologicalDataEntity> FindWeekInCity(string cityName) {
-            var weekInCity = _context.MeteorologicalData
-                .Where(metData=> metData.City == cityName)
+        public async Task<IEnumerable<MeteorologicalDataEntity>> FindWeekInCity(string cityName) {
+            var weekInCity = await _context.MeteorologicalData
+                .Where(metData => metData.City == cityName)
                 .OrderByDescending(metData => metData.WeatherDate)
                 .Take(7)
-                ;
+                .ToListAsync();
+
             return weekInCity;
         }
 
-        public MeteorologicalDataEntity? FindByID(Guid id)
+        public async Task<MeteorologicalDataEntity?> FindByID(Guid id)
         {
-            MeteorologicalDataEntity? metData = _context.MeteorologicalData.FirstOrDefault(metData => metData.Id == id);
+            var metData = await _context.MeteorologicalData.FirstOrDefaultAsync(metData => metData.Id == id);
             return metData;
         }
 
-        public async Task<PaginatedQueryWeather> GetPaginatedDataByCity(string cityName, int skip)
+        public async Task<PaginatedQueryWeather?> GetPaginatedDataByCity(string cityName, int skip)
         {
             var pageSize = 10;
             var query = _context.MeteorologicalData
@@ -112,10 +90,10 @@ namespace WeatherAPI_DOTNET.Data.Repository
         }
 
 
-        public MeteorologicalDataEntity FindBySpecificDateAndCity(string cityName, DateTime date)
+        public async Task<MeteorologicalDataEntity?> FindBySpecificDateAndCity(string cityName, DateTime date)
         {
-            var metData = _context.MeteorologicalData
-                .FirstOrDefault(
+            var metData = await _context.MeteorologicalData
+                .FirstOrDefaultAsync(
                metData =>
                (metData.City == cityName) &&
                (metData.WeatherDate.Day == date.Day) &&
@@ -125,16 +103,15 @@ namespace WeatherAPI_DOTNET.Data.Repository
             return metData;
         }
 
-        public MeteorologicalDataEntity DeleteById(Guid id)
+        public async Task<MeteorologicalDataEntity?> DeleteById(MeteorologicalDataEntity weather)
         {
-            MeteorologicalDataEntity metData = FindByID(id);
-            _context.Remove(metData);
-            _context.SaveChanges();
-            return metData;
+            _context.Remove(weather);
+            await _context.SaveChangesAsync();
+            return weather;
         }
-        public void EditMeteorologicalData()
+        public async Task EditMeteorologicalData()
         {
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
 

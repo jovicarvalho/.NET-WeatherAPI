@@ -6,7 +6,8 @@ using System.Globalization;
 using System.Reflection.Metadata;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using WeatherApi.DotNet.Domain.Entity;
+using WeatherApi.DotNet.Application.ExceptionHandling;
+using WeatherApi.DotNet.Domain.Dtos;
 using WeatherAPI_DOTNET.Data.Dtos;
 using WeatherAPI_DOTNET.Data.Repository;
 using WeatherAPI_DOTNET.Data.Repository.Interfaces;
@@ -17,83 +18,102 @@ namespace WeatherAPI_DOTNET.Service;
 
 public class MeteorologicalDataService : IMeteorologicalDataService
 {
-    private IMeteorologicalDataRepository _repository;
-    private IMapper _mapper;
+    private readonly IMeteorologicalDataRepository _repository;
+    private readonly IMapper _mapper;
     public MeteorologicalDataService(IMeteorologicalDataRepository repository, IMapper mapper)
     {
         _repository = repository;
         _mapper = mapper;
     }
 
-    public PaginatedQueryWeather FindAllMeteorologicalDataPaginated(int page)
+    public async Task<PaginatedQueryWeather> FindAllMeteorologicalDataPaginated(int skip)
     {
         int pageSize = 10;
-        return _repository.GetPaginatedDataOfAllWeathers(page * pageSize).Result;
+        var paginatedList = await _repository.GetPaginatedDataOfAllWeathers(skip * pageSize);
+        return paginatedList?.weathers is null || !paginatedList.weathers.Any() ?
+            throw new ServiceLayerNullPointerException("There is no weather data found!")
+            : paginatedList;
 
     }
 
-    public MeteorologicalDataEntity FindMeteorologicalDataByID(Guid id)
+    public async Task<MeteorologicalDataEntity> FindMeteorologicalDataByID(Guid id)
     {
-        var metData = _repository.FindByID(id);
-        return metData;
+        var metData = await _repository.FindByID(id);
+        return metData is null ?
+            throw new ServiceLayerNullPointerException("Weather data not found with this ID!") 
+            : metData;
     }
 
 
-    public MeteorologicalDataEntity FindMeteoroloficalDataBySpecificDate(string cityName, DateTime date)
+    public async Task<MeteorologicalDataEntity> FindMeteoroloficalDataBySpecificDate(string cityName, DateTime date)
     {
-        MeteorologicalDataEntity metData = _repository.FindBySpecificDateAndCity(cityName, date);
-        return metData;
+        var metData = await _repository.FindBySpecificDateAndCity(cityName, date);
+        return metData is null ? 
+            throw new ServiceLayerNullPointerException("There is no weathers found in this specific date in this City!")
+            : metData;
     }
 
-    public IEnumerable<MeteorologicalDataEntity> findWeekInCity(string cityName)
+    public async Task<IEnumerable<MeteorologicalDataEntity>> FindWeekInCity(string cityName)
     {
-        IEnumerable<MeteorologicalDataEntity> weekInCity = _repository.FindWeekInCity(cityName);
-        return weekInCity;
+        var weekInCity = await _repository.FindWeekInCity(cityName);
+        return !weekInCity.Any() ?
+            throw new ServiceLayerNullPointerException("Weather data not found with this ID!")
+            : weekInCity;
     } 
-    public MeteorologicalDataEntity FindActualDay(string cityname)
+    public async Task<MeteorologicalDataEntity> FindActualDay(string cityName)
     {
         var actualDay = DateTime.Now.Date;
-        MeteorologicalDataEntity metDataWithActualDay = FindMeteoroloficalDataBySpecificDate(cityname, actualDay);
+        var metDataWithActualDay = await FindMeteoroloficalDataBySpecificDate(cityName, actualDay);
         return metDataWithActualDay;
     }
 
-    public PaginatedQueryWeather FindMeteorologicalDataByCityName(string cityName, int page)
+    public async Task<PaginatedQueryWeather> FindMeteorologicalDataByCityName(string cityName, int skip)
     {
         int pageSize = 10;
-        return _repository.GetPaginatedDataByCity(cityName, page * pageSize).Result;
+        var paginatedList = await _repository.GetPaginatedDataByCity(cityName, skip * pageSize);
+        return paginatedList?.weathers is null || !paginatedList.weathers.Any()  ? 
+            throw new ServiceLayerNullPointerException("There is no meteorological data with this city!")
+            : paginatedList;
 
     }
 
-    public MeteorologicalDataEntity CreateMeteorologicalData(CreateMetDataDto metDataDto)
+    public async Task<MeteorologicalDataEntity> CreateMeteorologicalData(MeteorologicalDataDto metDataDto)
     {
         MeteorologicalDataEntity metData = _mapper.Map<MeteorologicalDataEntity>(metDataDto);
-        _repository.Add(metData);
+        await _repository.Add(metData);
         return metData;
     }
 
-    public MeteorologicalDataEntity EditMeteorologicalData(Guid id, UpdateMetDataDto metDataDto)
+    public async Task<MeteorologicalDataEntity> EditMeteorologicalData(Guid id, MeteorologicalDataDto metDataDto)
     {
-        var metData = FindMeteorologicalDataByID(id);
+        var metData = await FindMeteorologicalDataByID(id);
         _mapper.Map(metDataDto, metData);
-        _repository.EditMeteorologicalData();
+        await _repository.EditMeteorologicalData();
         return metData;
     }
 
 
-    public MeteorologicalDataEntity EditOnlyOneField(Guid id, JsonPatchDocument<UpdateMetDataDto> patch)
+    public async Task<MeteorologicalDataEntity> EditOnlyOneField(Guid id, JsonPatchDocument<MeteorologicalDataDto> patch)
     {
-        var metDatainRepository = FindMeteorologicalDataByID(id);
-        var uptadeDto = _mapper.Map<UpdateMetDataDto>(metDatainRepository);
+        var metDatainRepository = await FindMeteorologicalDataByID(id);
+        var uptadeDto = _mapper.Map<MeteorologicalDataDto>(metDatainRepository);
         patch.ApplyTo(uptadeDto);
         var metDataAlreadyEdited = _mapper.Map(uptadeDto, metDatainRepository);
-        _repository.EditMeteorologicalData();
+        await _repository.EditMeteorologicalData();
         return metDataAlreadyEdited;
     }
 
-    public MeteorologicalDataEntity DeleteMeteorologicalData(Guid id)
+    public async Task<MeteorologicalDataEntity> DeleteMeteorologicalData(Guid id)
     {
-        var metData = _repository.DeleteById(id);
-        return metData;
+#pragma warning disable CS8603
+
+        var weather = await FindMeteorologicalDataByID(id);
+
+        var deletedWeather = await _repository.DeleteById(weather);
+       
+       return deletedWeather;
+
+#pragma warning restore CS8603 
     }
 
 }
